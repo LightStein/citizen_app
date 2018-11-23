@@ -229,11 +229,13 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
         }
     }      //   რუკის ფანჯრის სრულ ეკრანზე გადიდება/დაპატარავება
 
+
+    //  კოდი დაწერილია ისე რომ წესით მოძებნილი კოორდინატები რუკაზე გადააქვს, მაგრამ რომ დავაკომენტარე მაინც მუსაობდა
+    //  ერთადერთი სხვაობა ის იყო რომ მენიუში უკან გამოსვლისას იქრაშებოდა
 //    private fun buildLocationCallBack() {
-//        println("////////////////// Build CallBack /////////////////////")
+//        println("////////////////// Build Location CallBack /////////////////////")
 //
 //        locationCallback = object : LocationCallback(){
-//
 //            override fun onLocationResult(p0: LocationResult?) {
 //                println("//////////////////  onLocation Result /////////////////////")
 //
@@ -258,7 +260,7 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
 //                nMap.animateCamera(CameraUpdateFactory.zoomBy(11f))
 //            }
 //        }
-//    }   //  მოძებნილი კოორდინატები რუკაზე გადააქვს
+//    }
 
     private fun buildLocationRequest() {
         locationRequest = LocationRequest()
@@ -307,7 +309,7 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
 
     override fun onStop() {
         println("///////////////////// Stopped //////////////////////")
-        fusedLocationProviderClient.removeLocationUpdates(locationCallback)
+//        fusedLocationProviderClient.removeLocationUpdates(locationCallback)
         super.onStop()
     }   // აპის ჩაკეცვისას აჩერებს ადგილმდებარეობის განახლებებს
 
