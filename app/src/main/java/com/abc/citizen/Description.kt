@@ -114,7 +114,7 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (checkLocationPermission()){
             buildLocationRequest()
-            buildLocationCallBack()
+//            buildLocationCallBack()
 
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
         fusedLocationProviderClient.requestLocationUpdates(LocationRequest(), LocationCallback(), Looper.myLooper())
@@ -122,7 +122,7 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
         }
         else{
             buildLocationRequest()
-            buildLocationCallBack()
+//            buildLocationCallBack()
 
             fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
             fusedLocationProviderClient.requestLocationUpdates(LocationRequest(), LocationCallback(), Looper.myLooper())
@@ -229,36 +229,36 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
         }
     }      //   რუკის ფანჯრის სრულ ეკრანზე გადიდება/დაპატარავება
 
-    private fun buildLocationCallBack() {
-        println("////////////////// Build CallBack /////////////////////")
-
-        locationCallback = object : LocationCallback(){
-
-            override fun onLocationResult(p0: LocationResult?) {
-                println("//////////////////  onLocation Result /////////////////////")
-
-                mLastLocation = p0!!.locations.get(p0.locations.size-1) // get last location
-                loc = mLastLocation
-                println(loc)
-                if (mMarker != null)
-                    mMarker!!.remove()
-                latitude = mLastLocation.latitude
-                longitude = mLastLocation.longitude
-                val latLng = LatLng(latitude,longitude)
-                println("///////////////    Lat Lng    ////////////////////")
-                val markerOptions = MarkerOptions()
-                    .position(latLng)
-                    .title("your position")
-                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
-                mMarker = nMap.addMarker(markerOptions)
-
-                // move camera
-                println("/////////////////  Move Camera  //////////////////")
-                nMap.moveCamera(CameraUpdateFactory.newLatLng(latLng))
-                nMap.animateCamera(CameraUpdateFactory.zoomBy(11f))
-            }
-        }
-    }   //  მოძებნილი კოორდინატები რუკაზე გადააქვს
+//    private fun buildLocationCallBack() {
+//        println("////////////////// Build CallBack /////////////////////")
+//
+//        locationCallback = object : LocationCallback(){
+//
+//            override fun onLocationResult(p0: LocationResult?) {
+//                println("//////////////////  onLocation Result /////////////////////")
+//
+//                mLastLocation = p0!!.locations.get(p0.locations.size-1) // get last location
+//                loc = mLastLocation
+//                println(loc)
+//                if (mMarker != null)
+//                    mMarker!!.remove()
+//                latitude = mLastLocation.latitude
+//                longitude = mLastLocation.longitude
+//                val latLng = LatLng(latitude,longitude)
+//                println("///////////////    Lat Lng    ////////////////////")
+//                val markerOptions = MarkerOptions()
+//                    .position(latLng)
+//                    .title("your position")
+//                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
+//                mMarker = nMap.addMarker(markerOptions)
+//
+//                // move camera
+//                println("/////////////////  Move Camera  //////////////////")
+//                nMap.moveCamera(CameraUpdateFactory.newLatLng(latLng))
+//                nMap.animateCamera(CameraUpdateFactory.zoomBy(11f))
+//            }
+//        }
+//    }   //  მოძებნილი კოორდინატები რუკაზე გადააქვს
 
     private fun buildLocationRequest() {
         locationRequest = LocationRequest()
@@ -293,7 +293,7 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
                         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)== PackageManager.PERMISSION_GRANTED)
                             if (checkLocationPermission()){
                                 buildLocationRequest()
-                                buildLocationCallBack()
+//                                buildLocationCallBack()
 
                                 fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
                                 fusedLocationProviderClient.requestLocationUpdates(LocationRequest(), LocationCallback(), Looper.myLooper())
