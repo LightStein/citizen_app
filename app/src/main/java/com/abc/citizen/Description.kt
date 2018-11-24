@@ -17,6 +17,7 @@ import android.os.*
 import android.provider.MediaStore
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
+import android.text.Editable
 import android.view.View
 import android.widget.ImageView
 import android.widget.Toast
@@ -28,6 +29,8 @@ import com.google.android.gms.maps.GoogleMap.MAP_TYPE_SATELLITE
 import com.google.android.gms.maps.model.MarkerOptions
 import android.widget.LinearLayout
 import com.abc.citizen.R.layout.activity_description
+import com.google.android.gms.tasks.OnSuccessListener
+import kotlinx.android.synthetic.*
 import java.io.*
 import java.net.Socket
 
@@ -39,8 +42,8 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var nMap: GoogleMap
     private var latitude: Double = 0.toDouble()
     private var longitude: Double = 0.toDouble()
-    private lateinit var  mLastLocation: Location
-    private var mMarker: Marker?=null
+    private lateinit var mLastLocation: Location
+    private var mMarker: Marker? = null
 
     // Location
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
@@ -51,32 +54,35 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
 
     ///////////////////////////////////////////////
 
-
     companion object {
         private const val MY_PERMISSION_CODE: Int = 1000
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        when(requestCode){
+        when (requestCode) {
             CAMERA_REQUEST_CODE -> {
-                if(resultCode == Activity.RESULT_OK && data != null){
+                if (resultCode == Activity.RESULT_OK && data != null) {
                     photoImageView.setImageBitmap(data.extras.get("data") as Bitmap)
                 }
             }
             else -> {
-
-                Toast.makeText(this,"Unrecognized request code", Toast.LENGTH_SHORT).show()
+                if (data == null)
+                    Toast.makeText(this, "Unrecognized request code (data = 0)", Toast.LENGTH_SHORT).show()
+                else
+                    Toast.makeText(
+                        this,
+                        "Unrecognized request code (resultCode != Activity.RESULT_OK)",
+                        Toast.LENGTH_SHORT
+                    ).show()
             }
         }
         ////////////// სურათის გასაგზავნად /////////////////
-        if(requestCode== 1)
-        {
-            if (requestCode == Activity.RESULT_OK)
-            {
-                try{
+        if (requestCode == 1) {
+            if (requestCode == Activity.RESULT_OK) {
+                try {
                     var imageUri: Uri = data?.data as Uri
-                    var imageStream: InputStream  = getContentResolver().openInputStream(imageUri) as InputStream
+                    var imageStream: InputStream = getContentResolver().openInputStream(imageUri) as InputStream
                     val selectedImage = BitmapFactory.decodeStream(imageStream)
                     photoImageView.setImageBitmap(selectedImage)
 
@@ -87,11 +93,13 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
                     val sic = SendImageClient()
                     sic.execute(array)
 
-                }catch (e: FileNotFoundException){
+                } catch (e: FileNotFoundException) {
                     e.printStackTrace()
                     Toast.makeText(applicationContext, "Something went wrong", Toast.LENGTH_LONG).show()
                 }
-            } else { Toast.makeText(applicationContext, "No Image Selected", Toast.LENGTH_LONG).show() }
+            } else {
+                Toast.makeText(applicationContext, "No Image Selected", Toast.LENGTH_LONG).show()
+            }
 
         }
     }
@@ -112,26 +120,29 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
         println(Build.VERSION_CODES.M)
         println("===================================================")
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (checkLocationPermission()){
-            buildLocationRequest()
-//            buildLocationCallBack()
+            if (checkLocationPermission()) {
+                buildLocationRequest()
+            buildLocationCallBack()
 
-        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
-        fusedLocationProviderClient.requestLocationUpdates(LocationRequest(), LocationCallback(), Looper.myLooper())
+                fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
+                fusedLocationProviderClient.requestLocationUpdates(
+                    LocationRequest(),
+                    LocationCallback(),
+                    Looper.myLooper()
+                )
             }
-        }
-        else{
+        } else {
             buildLocationRequest()
-//            buildLocationCallBack()
+            buildLocationCallBack()
 
             fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
             fusedLocationProviderClient.requestLocationUpdates(LocationRequest(), LocationCallback(), Looper.myLooper())
         }
         expandMap()
         camera()
-        cameraButton.setOnClickListener{
+        cameraButton.setOnClickListener {
             val callCameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-            if(callCameraIntent.resolveActivity(packageManager) != null){
+            if (callCameraIntent.resolveActivity(packageManager) != null) {
                 startActivityForResult(callCameraIntent, CAMERA_REQUEST_CODE)
             }
 
@@ -141,15 +152,21 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
 
     }
 
-    fun send(v: View){
+    fun send(v: View) {
         println("////////////////// send /////////////////////")
 
-    val messageSender = MessageSender()
-    messageSender.execute(commentText.text.toString())
+        val messageSender = MessageSender()
+        messageSender.execute(commentText.text.toString())
+        Toast.makeText(this, "comment has been sent", Toast.LENGTH_SHORT).show()
+        commentText.text.clear()
+
 //    println("//////////////////"+loc.toString()+"/////////////////////")
+        //////////////////// location implementation /////////////////////
+
+
     }   // ჯერჯერობით გზავნის კომენტარს
 
-    fun sendImage(v: View){
+    fun sendImage(v: View) {
         println("////////////////// send image /////////////////////")
 
         /////////   სურათის გაგზავნა    //////////
@@ -158,109 +175,107 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
             addCategory(Intent.CATEGORY_OPENABLE)
             setType("image/*")
         }
-        startActivityForResult(i,1)
+        startActivityForResult(i, 1)
     }
 
-    private fun camera(){
+    private fun camera() {
         println("////////////////// camera /////////////////////")
 
-        cameraButton.setOnClickListener{
+        cameraButton.setOnClickListener {
 
             val intent = Intent(applicationContext, Camera::class.java)
             startActivity(intent)
         }
     }   // კამერის გამშვები
 
-    private fun expandMap(){
+    private fun expandMap() {
         println("////////////////// Expand Map /////////////////////")
 
         var isExpanded = false
 
-        button_max.setOnClickListener{
-            if(isExpanded == false){
-            isExpanded = true
-            val param = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                1.0f
-            )
-            mapLayout.layoutParams = param // 6
-            descriptionBody.layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                15.0f
-            ) // 4
-            descriptionBottomPannel.layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                13.0f
-            ) // 8
-            descriptionTopPanel.layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                13.0f
-            ) // 8
+        button_max.setOnClickListener {
+            if (isExpanded == false) {
+                isExpanded = true
+                val param = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    1.0f
+                )
+                mapLayout.layoutParams = param // 6
+                descriptionBody.layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    15.0f
+                ) // 4
+                descriptionBottomPannel.layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    13.0f
+                ) // 8
+                descriptionTopPanel.layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    13.0f
+                ) // 8
 
 
-            } else{
-                    isExpanded = false
-                    val param = LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.MATCH_PARENT,
-                        LinearLayout.LayoutParams.MATCH_PARENT,
-                        6.0f
-                    )
-                    mapLayout.layoutParams = param // 6
-                    descriptionBody.layoutParams = LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.MATCH_PARENT,
-                        LinearLayout.LayoutParams.MATCH_PARENT,
-                        4.0f
-                    ) // 4
-                    descriptionBottomPannel.layoutParams = LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.MATCH_PARENT,
-                        LinearLayout.LayoutParams.MATCH_PARENT,
-                        8.0f
-                    ) // 8
-                    descriptionTopPanel.layoutParams = LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.MATCH_PARENT,
-                        LinearLayout.LayoutParams.MATCH_PARENT,
-                        8.0f
-                    ) // 8
+            } else {
+                isExpanded = false
+                val param = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    6.0f
+                )
+                mapLayout.layoutParams = param // 6
+                descriptionBody.layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    4.0f
+                ) // 4
+                descriptionBottomPannel.layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    8.0f
+                ) // 8
+                descriptionTopPanel.layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    8.0f
+                ) // 8
             }
         }
     }      //   რუკის ფანჯრის სრულ ეკრანზე გადიდება/დაპატარავება
 
+    //  კოდი დაწერილია ისე რომ წესით მოძებნილი კოორდინატები რუკაზე გადააქვს, მაგრამ რომ დავაკომენტარე მაინც მუშაობდა
+    private fun buildLocationCallBack() {
+        println("////////////////// Build Location CallBack /////////////////////")
 
-    //  კოდი დაწერილია ისე რომ წესით მოძებნილი კოორდინატები რუკაზე გადააქვს, მაგრამ რომ დავაკომენტარე მაინც მუსაობდა
-    //  ერთადერთი სხვაობა ის იყო რომ მენიუში უკან გამოსვლისას იქრაშებოდა
-//    private fun buildLocationCallBack() {
-//        println("////////////////// Build Location CallBack /////////////////////")
-//
-//        locationCallback = object : LocationCallback(){
-//            override fun onLocationResult(p0: LocationResult?) {
-//                println("//////////////////  onLocation Result /////////////////////")
-//
-//                mLastLocation = p0!!.locations.get(p0.locations.size-1) // get last location
-//                loc = mLastLocation
-//                println(loc)
-//                if (mMarker != null)
-//                    mMarker!!.remove()
-//                latitude = mLastLocation.latitude
-//                longitude = mLastLocation.longitude
-//                val latLng = LatLng(latitude,longitude)
-//                println("///////////////    Lat Lng    ////////////////////")
-//                val markerOptions = MarkerOptions()
-//                    .position(latLng)
-//                    .title("your position")
-//                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
-//                mMarker = nMap.addMarker(markerOptions)
-//
-//                // move camera
-//                println("/////////////////  Move Camera  //////////////////")
-//                nMap.moveCamera(CameraUpdateFactory.newLatLng(latLng))
-//                nMap.animateCamera(CameraUpdateFactory.zoomBy(11f))
-//            }
-//        }
-//    }
+        locationCallback = object : LocationCallback(){
+            override fun onLocationResult(p0: LocationResult?) {
+                println("//////////////////  onLocation Result /////////////////////")
+
+                mLastLocation = p0!!.locations.get(p0.locations.size-1) // get last location
+                loc = mLastLocation
+                println(loc)
+                if (mMarker != null)
+                    mMarker!!.remove()
+                latitude = mLastLocation.latitude
+                longitude = mLastLocation.longitude
+                val latLng = LatLng(latitude,longitude)
+                println("///////////////    Lat Lng    ////////////////////")
+                val markerOptions = MarkerOptions()
+                    .position(latLng)
+                    .title("your position")
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
+                mMarker = nMap.addMarker(markerOptions)
+
+                // move camera
+                println("/////////////////  Move Camera  //////////////////")
+                nMap.moveCamera(CameraUpdateFactory.newLatLng(latLng))
+                nMap.animateCamera(CameraUpdateFactory.zoomBy(11f))
+            }
+        }
+    }
 
     private fun buildLocationRequest() {
         locationRequest = LocationRequest()
@@ -272,60 +287,82 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
 
     private fun checkLocationPermission(): Boolean {
 
-        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)
-        {
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this, android.Manifest.permission.ACCESS_FINE_LOCATION))
-                ActivityCompat.requestPermissions(this, arrayOf(
+        if (ContextCompat.checkSelfPermission(
+                this,
+                android.Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(
+                    this,
                     android.Manifest.permission.ACCESS_FINE_LOCATION
-                ), MY_PERMISSION_CODE)
+                )
+            )
+                ActivityCompat.requestPermissions(
+                    this, arrayOf(
+                        android.Manifest.permission.ACCESS_FINE_LOCATION
+                    ), MY_PERMISSION_CODE
+                )
             else
-                ActivityCompat.requestPermissions(this, arrayOf(
-                    android.Manifest.permission.ACCESS_FINE_LOCATION
-                ), MY_PERMISSION_CODE)
+                ActivityCompat.requestPermissions(
+                    this, arrayOf(
+                        android.Manifest.permission.ACCESS_FINE_LOCATION
+                    ), MY_PERMISSION_CODE
+                )
             return false
-        }
-        else
+        } else
             return true
     }   // ამოწმებს GPS ნავიგაციის ნებართვას და გამოაქვს ან True ან False
+
     //  თუ ნავიგაციაზე ნება დართულია კოორდინატებს ვეძებთ და ვიძახებთ buildLocationCallback-ს და Request-ს
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        when(requestCode){
-            MY_PERMISSION_CODE->(
-                    if(grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED){
-                        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)== PackageManager.PERMISSION_GRANTED)
-                            if (checkLocationPermission()){
+        when (requestCode) {
+            MY_PERMISSION_CODE -> (
+                    if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                        if (ContextCompat.checkSelfPermission(
+                                this,
+                                android.Manifest.permission.ACCESS_FINE_LOCATION
+                            ) == PackageManager.PERMISSION_GRANTED
+                        )
+                            if (checkLocationPermission()) {
                                 buildLocationRequest()
-//                                buildLocationCallBack()
+                                buildLocationCallBack()
 
                                 fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
-                                fusedLocationProviderClient.requestLocationUpdates(LocationRequest(), LocationCallback(), Looper.myLooper())
-                                nMap.isMyLocationEnabled=true
+                                fusedLocationProviderClient.requestLocationUpdates(
+                                    LocationRequest(),
+                                    LocationCallback(),
+                                    Looper.myLooper()
+                                )
+//                                fusedLocationProviderClient.getlastLocation.addOnSuccessListener(Description this, new OnSuccessListener <Location>() { })
+                                nMap.isMyLocationEnabled = true
                             }
-                    }
-                    else
+                    } else
                         Toast.makeText(this, "Permssion Denied", Toast.LENGTH_LONG).show())
         }
     }
 
     override fun onStop() {
         println("///////////////////// Stopped //////////////////////")
-//        fusedLocationProviderClient.removeLocationUpdates(locationCallback)
+        fusedLocationProviderClient.removeLocationUpdates(locationCallback)
         super.onStop()
     }   // აპის ჩაკეცვისას აჩერებს ადგილმდებარეობის განახლებებს
 
     override fun onMapReady(googleMap: GoogleMap) {
-         nMap = googleMap
-         nMap.mapType =  MAP_TYPE_SATELLITE
+        nMap = googleMap
+        nMap.mapType = MAP_TYPE_SATELLITE
 
         // init Google Play Services
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
 
-            if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            nMap.isMyLocationEnabled=true
+            if (ContextCompat.checkSelfPermission(
+                    this,
+                    android.Manifest.permission.ACCESS_FINE_LOCATION
+                ) == PackageManager.PERMISSION_GRANTED
+            ) {
+                nMap.isMyLocationEnabled = true
             }
-        }
-        else
+        } else
             nMap.isMyLocationEnabled = false
 
 
@@ -336,12 +373,12 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
     }   // რუკის პარამეტრები + ხელმეორედ მოწმდება ნებართვა
 }
 
- class SendImageClient : AsyncTask<ByteArray, Void, Void>() {
-     override fun doInBackground(vararg params: ByteArray?): Void {
-         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-     }
+class SendImageClient : AsyncTask<ByteArray, Void, Void>() {
+    override fun doInBackground(vararg params: ByteArray?): Void {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
 
-     private fun doInBackground(vararg voids: Byte) {
+    private fun doInBackground(vararg voids: Byte) {
 
         try {
             val socket = Socket("31.192.57.86", 6800)

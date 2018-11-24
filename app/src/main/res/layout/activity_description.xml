@@ -76,6 +76,14 @@
                 app:layout_constraintBottom_toTopOf="@+id/cameraButton"
                 app:layout_constraintStart_toStartOf="@+id/cameraButton"
                 app:layout_constraintEnd_toEndOf="@+id/cameraButton"/>
+        <TextView
+                android:text="TextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/addr" android:layout_marginStart="24dp"
+                app:layout_constraintStart_toStartOf="parent" android:layout_marginLeft="24dp"
+                android:layout_marginBottom="24dp" app:layout_constraintBottom_toTopOf="@+id/commentText"
+                android:textSize="24sp" android:textStyle="bold"/>
 
     </android.support.constraint.ConstraintLayout>
     <android.support.constraint.ConstraintLayout
