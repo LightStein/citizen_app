@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "1071343053446",
+    "firebase_url": "https://citizenauthorization.firebaseio.com",
+    "project_id": "citizenauthorization",
+    "storage_bucket": "citizenauthorization.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1071343053446:android:8b49252e5542f2a8",
+        "android_client_info": {
+          "package_name": "com.abc.citizen"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1071343053446-a5huiacti74cosa8l20nbl2es9r52tl1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDoTHR3GRd8V0rFYxFMC1INYOE2Mj43ZoY"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

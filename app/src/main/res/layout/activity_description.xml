@@ -77,13 +77,14 @@
                 app:layout_constraintStart_toStartOf="@+id/cameraButton"
                 app:layout_constraintEnd_toEndOf="@+id/cameraButton"/>
         <TextView
-                android:text="TextView"
+                android:text="..."
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:id="@+id/addr" android:layout_marginStart="24dp"
                 app:layout_constraintStart_toStartOf="parent" android:layout_marginLeft="24dp"
                 android:layout_marginBottom="24dp" app:layout_constraintBottom_toTopOf="@+id/commentText"
-                android:textSize="24sp" android:textStyle="bold"/>
+                android:textSize="24sp" android:textStyle="bold"
+                android:textColor="@color/common_google_signin_btn_text_dark_default"/>
 
     </android.support.constraint.ConstraintLayout>
     <android.support.constraint.ConstraintLayout

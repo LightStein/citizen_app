@@ -29,6 +29,7 @@ import com.google.android.gms.maps.GoogleMap.MAP_TYPE_SATELLITE
 import com.google.android.gms.maps.model.MarkerOptions
 import android.widget.LinearLayout
 import com.abc.citizen.R.layout.activity_description
+import com.google.android.gms.common.api.GoogleApiClient
 import com.google.android.gms.tasks.OnSuccessListener
 import kotlinx.android.synthetic.*
 import java.io.*
@@ -38,15 +39,16 @@ var handler = Handler()
 lateinit var loc: Location
 
 class Description : AppCompatActivity(), OnMapReadyCallback {
-    private val CAMERA_REQUEST_CODE = 0
+    private var CAMERA_REQUEST_CODE = 0
     private lateinit var nMap: GoogleMap
-    private var latitude: Double = 0.toDouble()
-    private var longitude: Double = 0.toDouble()
-    private lateinit var mLastLocation: Location
-    private var mMarker: Marker? = null
 
     // Location
+    private var mMarker: Marker? = null
+    private lateinit var mLastLocation: Location
+    private var latitude: Double = 0.toDouble()
+    private var longitude: Double = 0.toDouble()
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
+    private lateinit var client: GoogleApiClient
     private lateinit var locationRequest: LocationRequest
     private lateinit var locationCallback: LocationCallback
     ////////////// სურთის გასაგზავნად///////////////
@@ -157,11 +159,13 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
 
         val messageSender = MessageSender()
         messageSender.execute(commentText.text.toString())
+
         Toast.makeText(this, "comment has been sent", Toast.LENGTH_SHORT).show()
         commentText.text.clear()
 
 //    println("//////////////////"+loc.toString()+"/////////////////////")
         //////////////////// location implementation /////////////////////
+//        addr.text=mLastLocation.latitude.toString()
 
 
     }   // ჯერჯერობით გზავნის კომენტარს
@@ -176,7 +180,7 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
             setType("image/*")
         }
         startActivityForResult(i, 1)
-    }
+    }   // სურათის გაგზავნის ფუნქცია (არ მუშაობს ჯერჯერობით)
 
     private fun camera() {
         println("////////////////// camera /////////////////////")
@@ -272,6 +276,7 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
                 // move camera
                 println("/////////////////  Move Camera  //////////////////")
                 nMap.moveCamera(CameraUpdateFactory.newLatLng(latLng))
+                println("**********************"+latLng.toString()+"*************************")
                 nMap.animateCamera(CameraUpdateFactory.zoomBy(11f))
             }
         }
@@ -333,7 +338,7 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
                                     LocationCallback(),
                                     Looper.myLooper()
                                 )
-//                                fusedLocationProviderClient.getlastLocation.addOnSuccessListener(Description this, new OnSuccessListener <Location>() { })
+
                                 nMap.isMyLocationEnabled = true
                             }
                     } else

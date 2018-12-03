@@ -15,10 +15,11 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(applicationContext, Description::class.java)
             startActivity(intent)
         }
-
-        button_justise.setOnClickListener{
-
+        buttonSearch.setOnClickListener {
+            val intent = Intent(applicationContext, Login::class.java)
+            startActivity(intent)
         }
+
 
 
 }
