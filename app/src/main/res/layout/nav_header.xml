@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="180dp"
+              android:background="#5289FD"
+              android:gravity="center_horizontal"
+              android:padding="16dp"
+              android:theme="@style/ThemeOverlay.AppCompat.Dark">
+
+    <ImageView android:layout_width="80dp" android:layout_height="80dp"
+               android:src="@mipmap/icon_profile" android:id="@+id/profilePic"/>
+    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+              android:paddingTop="8dp"
+              android:text="user"
+              android:textAppearance="@style/Base.TextAppearance.AppCompat.Body1" android:textStyle="bold"
+              android:id="@+id/userNameText"/>
+    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+              android:paddingTop="8dp"
+              android:text="user@Email.com"
+              android:textAppearance="@style/Base.TextAppearance.AppCompat.Body1"/>
+</LinearLayout>

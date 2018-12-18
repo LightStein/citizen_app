@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:id="@+id/nav_account"
+          android:title="my Account"
+          android:icon="@mipmap/icon_profile"/>
+
+    <item android:id="@+id/nav_settings"
+          android:title="Settings"
+          android:icon="@mipmap/icon_settings"/>
+
+    <item android:id="@+id/nav_logout"
+          android:title="Feedback"
+          android:icon="@mipmap/icon_feedback"/>
+
+</menu>

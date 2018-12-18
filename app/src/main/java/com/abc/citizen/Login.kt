@@ -12,10 +12,14 @@ import android.util.Log
 import android.view.View
 import android.widget.Toast
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.FirebaseDatabase
 import kotlinx.android.synthetic.main.activity_login.*
+import kotlinx.android.synthetic.main.nav_header.*
 
 
 class Login : AppCompatActivity() {
+    private lateinit var database: DatabaseReference
 
     private val spannableStringRegWhite = SpannableString("REGISTER")
     private val spannableStringLogWhite = SpannableString("LOGIN")
@@ -28,6 +32,8 @@ class Login : AppCompatActivity() {
 
     private lateinit var auth: FirebaseAuth
 
+    private lateinit var logEmail: String
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
@@ -36,27 +42,36 @@ class Login : AppCompatActivity() {
 
         // Initialize Firebase Auth
         auth = FirebaseAuth.getInstance()
+        // Initialize Firebase Data
+        database = FirebaseDatabase.getInstance().reference
 
-        loginButton.setOnClickListener{
+        loginButton.setOnClickListener {
 
-            auth.signInWithEmailAndPassword(LogEmailText.text.toString(), LogPasswordText.text.toString())
-                .addOnCompleteListener(this) { task ->
-                    if (task.isSuccessful) {
-                        // Sign in success, update UI with the signed-in user's information
-                        Log.d("success", "signInWithEmail:success")
-                        val user = auth.currentUser
-                        Toast.makeText(this,"You've signed in successfully",Toast.LENGTH_SHORT).show()
-                        val intent = Intent(baseContext, MainActivity::class.java)
-                        startActivity(intent)
-                    } else {
-                        // If sign in fails, display a message to the user.
-                        Log.w("fail", "signInWithEmail:failure", task.exception)
-                        Toast.makeText(this, "Authentication failed.",
-                            Toast.LENGTH_SHORT).show()
+            if (LogEmailText.text.toString().isEmpty() || LogPasswordText.text.toString().isEmpty())
+                Toast.makeText(applicationContext, "Please fill all the fields", Toast.LENGTH_LONG).show()
+            else {
+                auth.signInWithEmailAndPassword(LogEmailText.text.toString(), LogPasswordText.text.toString())
+                    .addOnCompleteListener(this) { task ->
+                        if (task.isSuccessful) {
+                            logEmail
+                            // Sign in success, update UI with the signed-in user's information
+                            Log.d("success", "signInWithEmail:success")
+                            val user = auth.currentUser
+                            Toast.makeText(this, "You've signed in successfully", Toast.LENGTH_SHORT).show()
+                            val intent = Intent(baseContext, MainActivity::class.java)
+                            startActivity(intent)
+
+                        } else {
+                            // If sign in fails, display a message to the user.
+                            Log.w("fail", "signInWithEmail:failure", task.exception)
+                            Toast.makeText(
+                                this, "Authentication failed.",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
                     }
-                }
+            }
         }
-
 
         regButton.setOnClickListener{
             if (regNameText.text.isEmpty() || regEmailText.text.isEmpty() ||
@@ -74,8 +89,10 @@ class Login : AppCompatActivity() {
                             // Sign in success, update UI with the signed-in user's information
                             Log.d("Success", "createUserWithEmail:success")
                             val user = auth.currentUser
+                            writeNewUser(regNameText.text.toString(),regEmailText.text.toString())
                             Toast.makeText(this,"you have signed up successfully",
                                 Toast.LENGTH_SHORT).show()
+
                             regEmailText.text.clear()
                             regPasswordText.text.clear()
                             regNameText.text.clear()
@@ -88,13 +105,11 @@ class Login : AppCompatActivity() {
                                 Toast.LENGTH_SHORT).show()
                         }
                     }
-
-
-
-
             }
-
         }
+
+        // add admin account
+
     }
 
     private fun titleFontChange(){
@@ -150,4 +165,14 @@ class Login : AppCompatActivity() {
         }
 
     }
+
+    private fun writeNewUser(name: String, email: String?) {
+        val user = User(name, email)
+        database.child("users").child(name).setValue(user)
+    }
+
 }
+data class User(
+    var username: String? = "",
+    var email: String? = ""
+)

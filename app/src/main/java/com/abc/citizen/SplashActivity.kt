@@ -22,9 +22,6 @@ class SplashActivity : AppCompatActivity() {
             val intent = Intent(baseContext, Login::class.java)
             startActivity(intent)
         }
-
-
-
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
