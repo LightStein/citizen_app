@@ -15,6 +15,8 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+
+
         button_transport.setOnClickListener {
             val intent = Intent(applicationContext, Description::class.java)
             startActivity(intent)

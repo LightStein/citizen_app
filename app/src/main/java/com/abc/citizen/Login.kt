@@ -32,8 +32,6 @@ class Login : AppCompatActivity() {
 
     private lateinit var auth: FirebaseAuth
 
-    private lateinit var logEmail: String
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
@@ -47,13 +45,16 @@ class Login : AppCompatActivity() {
 
         loginButton.setOnClickListener {
 
-            if (LogEmailText.text.toString().isEmpty() || LogPasswordText.text.toString().isEmpty())
-                Toast.makeText(applicationContext, "Please fill all the fields", Toast.LENGTH_LONG).show()
-            else {
+            if (LogEmailText.text.toString().isEmpty()) {
+                LogEmailText.error = "Please Enter your Email address"
+                Toast.makeText(applicationContext, "Enter your Email address", Toast.LENGTH_SHORT).show()
+            } else if (LogPasswordText.text.toString().isEmpty()) {
+                LogPasswordText.error = "Please Enter your Password"
+                Toast.makeText(applicationContext, "Enter the Password", Toast.LENGTH_SHORT).show()
+            } else {
                 auth.signInWithEmailAndPassword(LogEmailText.text.toString(), LogPasswordText.text.toString())
                     .addOnCompleteListener(this) { task ->
                         if (task.isSuccessful) {
-                            logEmail
                             // Sign in success, update UI with the signed-in user's information
                             Log.d("success", "signInWithEmail:success")
                             val user = auth.currentUser
@@ -73,15 +74,21 @@ class Login : AppCompatActivity() {
             }
         }
 
-        regButton.setOnClickListener{
+        regButton.setOnClickListener {
             if (regNameText.text.isEmpty() || regEmailText.text.isEmpty() ||
-                    regPasswordText.text.isEmpty() || regConfirmPasswordText.text.isEmpty())
-                Toast.makeText(this, "Please fill all the fields",
-                    Toast.LENGTH_LONG).show()
-            else if (regPasswordText.text.toString() != regConfirmPasswordText.text.toString())
-                Toast.makeText(this,"Passwords Doesn't match",
-                    Toast.LENGTH_LONG).show()
-            else{
+                regPasswordText.text.isEmpty() || regConfirmPasswordText.text.isEmpty()
+            )
+                Toast.makeText(
+                    this, "Please fill all the fields",
+                    Toast.LENGTH_LONG
+                ).show()
+            else if (regPasswordText.text.toString() != regConfirmPasswordText.text.toString()) {
+                regConfirmPasswordText.error = "please Double-check your password"
+                Toast.makeText(
+                    this, "Passwords Doesn't match",
+                    Toast.LENGTH_LONG
+                ).show()
+            } else {
 
                 auth.createUserWithEmailAndPassword(regEmailText.text.toString(), regPasswordText.text.toString())
                     .addOnCompleteListener(this) { task ->
@@ -89,9 +96,11 @@ class Login : AppCompatActivity() {
                             // Sign in success, update UI with the signed-in user's information
                             Log.d("Success", "createUserWithEmail:success")
                             val user = auth.currentUser
-                            writeNewUser(regNameText.text.toString(),regEmailText.text.toString())
-                            Toast.makeText(this,"you have signed up successfully",
-                                Toast.LENGTH_SHORT).show()
+                            writeNewUser(user!!.uid,regNameText.text.toString(), regEmailText.text.toString())
+                            Toast.makeText(
+                                this, "you have signed up successfully",
+                                Toast.LENGTH_SHORT
+                            ).show()
 
                             regEmailText.text.clear()
                             regPasswordText.text.clear()
@@ -101,8 +110,10 @@ class Login : AppCompatActivity() {
                         } else {
                             // If sign in fails, display a message to the user.
                             Log.w("Fail", "createUserWithEmail:failure", task.exception)
-                            Toast.makeText(this, "Authentication failed.",
-                                Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                this, "Authentication failed.",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
                     }
             }
@@ -112,11 +123,11 @@ class Login : AppCompatActivity() {
 
     }
 
-    private fun titleFontChange(){
-        spannableStringLogWhite.setSpan(mWhite,0,5, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-        spannableStringLogGray.setSpan(mGray,0,5, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-        spannableStringRegGray.setSpan(mGray,0,8, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-        spannableStringRegWhite.setSpan(mWhite,0,8, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+    private fun titleFontChange() {
+        spannableStringLogWhite.setSpan(mWhite, 0, 5, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        spannableStringLogGray.setSpan(mGray, 0, 5, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        spannableStringRegGray.setSpan(mGray, 0, 8, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        spannableStringRegWhite.setSpan(mWhite, 0, 8, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
 
         loginSectorButton.text = spannableStringLogWhite
         registerSectorButton.text = spannableStringRegGray
@@ -130,7 +141,7 @@ class Login : AppCompatActivity() {
         regConfirmPasswordText.visibility = View.INVISIBLE
         regButton.visibility = View.INVISIBLE
 
-        loginSectorButton.setOnClickListener{
+        loginSectorButton.setOnClickListener {
             registerSectorButton.typeface = Typeface.DEFAULT
             loginSectorButton.typeface = Typeface.DEFAULT_BOLD
 
@@ -166,12 +177,13 @@ class Login : AppCompatActivity() {
 
     }
 
-    private fun writeNewUser(name: String, email: String?) {
+    private fun writeNewUser(userId: String, name: String, email: String?) {
         val user = User(name, email)
-        database.child("users").child(name).setValue(user)
+        database.child("users").child(userId).setValue(user)
     }
 
 }
+
 data class User(
     var username: String? = "",
     var email: String? = ""
