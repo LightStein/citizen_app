@@ -17,7 +17,6 @@ import com.google.firebase.database.FirebaseDatabase
 import kotlinx.android.synthetic.main.activity_login.*
 import kotlinx.android.synthetic.main.nav_header.*
 
-
 class Login : AppCompatActivity() {
     private lateinit var database: DatabaseReference
 
@@ -58,6 +57,7 @@ class Login : AppCompatActivity() {
                             // Sign in success, update UI with the signed-in user's information
                             Log.d("success", "signInWithEmail:success")
                             val user = auth.currentUser
+
                             Toast.makeText(this, "You've signed in successfully", Toast.LENGTH_SHORT).show()
                             val intent = Intent(baseContext, MainActivity::class.java)
                             startActivity(intent)
@@ -96,7 +96,7 @@ class Login : AppCompatActivity() {
                             // Sign in success, update UI with the signed-in user's information
                             Log.d("Success", "createUserWithEmail:success")
                             val user = auth.currentUser
-                            writeNewUser(user!!.uid,regNameText.text.toString(), regEmailText.text.toString())
+                            writeNewUser(user!!.uid, regNameText.text.toString(), regEmailText.text.toString())
                             Toast.makeText(
                                 this, "you have signed up successfully",
                                 Toast.LENGTH_SHORT
@@ -140,6 +140,7 @@ class Login : AppCompatActivity() {
         regPasswordText.visibility = View.INVISIBLE
         regConfirmPasswordText.visibility = View.INVISIBLE
         regButton.visibility = View.INVISIBLE
+        regProfilePic.visibility = View.INVISIBLE
 
         loginSectorButton.setOnClickListener {
             registerSectorButton.typeface = Typeface.DEFAULT
@@ -156,6 +157,7 @@ class Login : AppCompatActivity() {
             regPasswordText.visibility = View.INVISIBLE
             regConfirmPasswordText.visibility = View.INVISIBLE
             regButton.visibility = View.INVISIBLE
+            regProfilePic.visibility = View.INVISIBLE
         }
 
         registerSectorButton.setOnClickListener {
@@ -173,6 +175,7 @@ class Login : AppCompatActivity() {
             regPasswordText.visibility = View.VISIBLE
             regConfirmPasswordText.visibility = View.VISIBLE
             regButton.visibility = View.VISIBLE
+            regProfilePic.visibility = View.VISIBLE
         }
 
     }

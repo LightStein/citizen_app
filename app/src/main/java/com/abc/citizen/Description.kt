@@ -51,10 +51,7 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var client: GoogleApiClient
     private lateinit var locationRequest: LocationRequest
     private lateinit var locationCallback: LocationCallback
-    ////////////// სურთის გასაგზავნად///////////////
-    var imageView: ImageView? = null
 
-    ///////////////////////////////////////////////
 
     companion object {
         private const val MY_PERMISSION_CODE: Int = 1000
@@ -79,31 +76,7 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
                     ).show()
             }
         }
-        ////////////// სურათის გასაგზავნად /////////////////
-        if (requestCode == 1) {
-            if (requestCode == Activity.RESULT_OK) {
-                try {
-                    var imageUri: Uri = data?.data as Uri
-                    var imageStream: InputStream = getContentResolver().openInputStream(imageUri) as InputStream
-                    val selectedImage = BitmapFactory.decodeStream(imageStream)
-                    photoImageView.setImageBitmap(selectedImage)
 
-                    val bos = ByteArrayOutputStream()
-                    selectedImage.compress(Bitmap.CompressFormat.PNG, 1, bos)
-                    val array = bos.toByteArray()
-
-                    val sic = SendImageClient()
-                    sic.execute(array)
-
-                } catch (e: FileNotFoundException) {
-                    e.printStackTrace()
-                    Toast.makeText(applicationContext, "Something went wrong", Toast.LENGTH_LONG).show()
-                }
-            } else {
-                Toast.makeText(applicationContext, "No Image Selected", Toast.LENGTH_LONG).show()
-            }
-
-        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -124,7 +97,7 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (checkLocationPermission()) {
                 buildLocationRequest()
-            buildLocationCallBack()
+                buildLocationCallBack()
 
                 fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
                 fusedLocationProviderClient.requestLocationUpdates(
@@ -169,18 +142,6 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
 
 
     }   // ჯერჯერობით გზავნის კომენტარს
-
-    fun sendImage(v: View) {
-        println("////////////////// send image /////////////////////")
-
-        /////////   სურათის გაგზავნა    //////////
-        var i = Intent(Intent.ACTION_OPEN_DOCUMENT)
-        i.run {
-            addCategory(Intent.CATEGORY_OPENABLE)
-            setType("image/*")
-        }
-        startActivityForResult(i, 1)
-    }   // სურათის გაგზავნის ფუნქცია (არ მუშაობს ჯერჯერობით)
 
     private fun camera() {
         println("////////////////// camera /////////////////////")
@@ -250,22 +211,22 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
         }
     }      //   რუკის ფანჯრის სრულ ეკრანზე გადიდება/დაპატარავება
 
-    //  კოდი დაწერილია ისე რომ წესით მოძებნილი კოორდინატები რუკაზე გადააქვს, მაგრამ რომ დავაკომენტარე მაინც მუშაობდა
+    //  მოძებნილი კოორდინატები რუკაზე გადააქვს
     private fun buildLocationCallBack() {
         println("////////////////// Build Location CallBack /////////////////////")
 
-        locationCallback = object : LocationCallback(){
+        locationCallback = object : LocationCallback() {
             override fun onLocationResult(p0: LocationResult?) {
                 println("//////////////////  onLocation Result /////////////////////")
 
-                mLastLocation = p0!!.locations.get(p0.locations.size-1) // get last location
+                mLastLocation = p0!!.locations.get(p0.locations.size - 1) // get last location
                 loc = mLastLocation
                 println(loc)
                 if (mMarker != null)
                     mMarker!!.remove()
                 latitude = mLastLocation.latitude
                 longitude = mLastLocation.longitude
-                val latLng = LatLng(latitude,longitude)
+                val latLng = LatLng(latitude, longitude)
                 println("///////////////    Lat Lng    ////////////////////")
                 val markerOptions = MarkerOptions()
                     .position(latLng)
@@ -276,7 +237,7 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
                 // move camera
                 println("/////////////////  Move Camera  //////////////////")
                 nMap.moveCamera(CameraUpdateFactory.newLatLng(latLng))
-                println("**********************"+latLng.toString()+"*************************")
+                println("**********************" + latLng.toString() + "*************************")
                 nMap.animateCamera(CameraUpdateFactory.zoomBy(11f))
             }
         }
@@ -378,29 +339,3 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
     }   // რუკის პარამეტრები + ხელმეორედ მოწმდება ნებართვა
 }
 
-class SendImageClient : AsyncTask<ByteArray, Void, Void>() {
-    override fun doInBackground(vararg params: ByteArray?): Void {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    private fun doInBackground(vararg voids: Byte) {
-
-        try {
-            val socket = Socket("31.192.57.86", 6800)
-
-            val out = socket.getOutputStream()
-            val dos = DataOutputStream(out)
-            dos.writeInt(voids.size)
-            dos.write(voids, 0, voids.size)
-            //handler.post{ Toast.makeText(this, "image sent", Toast.LENGTH_LONG).show() }
-            dos.close()
-            out.close()
-            socket.close()
-        } catch (e: IOException) {
-            e.printStackTrace()
-            //handler.post{ Toast.makeText(Description , "i/o exception", Toast.LENGTH_SHORT).show() }
-        }
-
-    }
-
-}
