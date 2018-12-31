@@ -194,7 +194,7 @@ class Login : AppCompatActivity() {
         regConfirmPasswordText.visibility = View.INVISIBLE
         regButton.visibility = View.INVISIBLE
         regProfilePic.visibility = View.INVISIBLE
-        circle_profile_picture = View.INVISIBLE
+        circle_profile_picture.visibility = View.INVISIBLE
 
         loginSectorButton.setOnClickListener {
             registerSectorButton.typeface = Typeface.DEFAULT
