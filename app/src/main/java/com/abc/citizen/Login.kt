@@ -161,7 +161,6 @@ class Login : AppCompatActivity() {
             }
     }
 
-
     var selectedPhotoUri: Uri? = null
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
@@ -195,6 +194,7 @@ class Login : AppCompatActivity() {
         regConfirmPasswordText.visibility = View.INVISIBLE
         regButton.visibility = View.INVISIBLE
         regProfilePic.visibility = View.INVISIBLE
+        circle_profile_picture = View.INVISIBLE
 
         loginSectorButton.setOnClickListener {
             registerSectorButton.typeface = Typeface.DEFAULT
@@ -212,6 +212,7 @@ class Login : AppCompatActivity() {
             regConfirmPasswordText.visibility = View.INVISIBLE
             regButton.visibility = View.INVISIBLE
             regProfilePic.visibility = View.INVISIBLE
+            circle_profile_picture.visibility = View.INVISIBLE
         }
 
         registerSectorButton.setOnClickListener {
@@ -230,6 +231,7 @@ class Login : AppCompatActivity() {
             regConfirmPasswordText.visibility = View.VISIBLE
             regButton.visibility = View.VISIBLE
             regProfilePic.visibility = View.VISIBLE
+            circle_profile_picture.visibility = View.VISIBLE
         }
 
     }
