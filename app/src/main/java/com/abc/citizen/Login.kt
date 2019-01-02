@@ -21,8 +21,7 @@ import android.view.View
 import android.widget.Toast
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.database.DatabaseReference
-import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.*
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.android.synthetic.main.activity_login.*
 import kotlinx.android.synthetic.main.nav_header.*
@@ -45,6 +44,8 @@ class Login : AppCompatActivity() {
     private lateinit var auth: FirebaseAuth
 
     private var mProgressBar: ProgressDialog? = null
+
+
 
 
     override fun onCreate(savedInstanceState: Bundle?) {

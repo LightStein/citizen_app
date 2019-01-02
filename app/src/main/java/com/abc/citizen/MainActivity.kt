@@ -8,35 +8,29 @@ import android.util.Log
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_main.*
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.UserInfo
+import com.google.firebase.database.*
+import com.squareup.picasso.Picasso
+import de.hdodenhof.circleimageview.CircleImageView
 import kotlinx.android.synthetic.main.nav_header.*
 
 
-
 class MainActivity : AppCompatActivity() {
-        override fun onCreate(savedInstanceState: Bundle?) {
+    private var mDatabaseReference: DatabaseReference? = null
+    private var mDatabase: FirebaseDatabase? = null
+    private var mAuth: FirebaseAuth? = null
+
+    private var textUser: TextView? = null
+    private var textUserEmail: TextView? = null
+    private var imageProfile: CircleImageView? = null
+
+    override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
-//            val user = FirebaseAuth.getInstance().currentUser
-//            user?.let {
-//                // Name, email address, and profile photo Url
-//                // Name, email address, and profile photo Url
-//                val name = user.displayName
-//                val email = user.email
-//                val photoUrl = user.photoUrl
-//                Log.d("username", "0000000000000000000000000000000")
-//                Log.d("username", name)
-//                Log.d("username", "0000000000000000000000000000000")
-//            }
-
-        val navigationView: NavigationView = findViewById(R.id.nav_view)
-        val headView: View = navigationView.getHeaderView(0)
-        val imageProfile: ImageView = headView.findViewById(R.id.profilePic)
-        val textUser: TextView = headView.findViewById(R.id.userNameText)
-        val textUserEmail: TextView = headView.findViewById(R.id.userEmailText)
-
+        initialise()
 
 
         button_transport.setOnClickListener {
@@ -51,5 +45,51 @@ class MainActivity : AppCompatActivity() {
     }
 
 
+    private fun initialise() {
+        mDatabase = FirebaseDatabase.getInstance()
+        mDatabaseReference = mDatabase!!.reference!!.child("users")
+        mAuth = FirebaseAuth.getInstance()
+
+        val navigationView: NavigationView = findViewById(R.id.nav_view)
+        val headView: View = navigationView.getHeaderView(0)
+        imageProfile = headView.findViewById(R.id.profilePic)
+        textUser= headView.findViewById(R.id.userNameText)
+        textUserEmail= headView.findViewById(R.id.userEmailText)
+
+    }
+
+
+    override fun onStart() {
+        super.onStart()
+
+        val mUser = mAuth!!.currentUser
+        val mUserReference = mDatabaseReference!!.child(mUser!!.uid)
+
+        textUserEmail!!.text = mUser.email
+
+        mUserReference.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                // Get Post object and use the values to update the UI
+
+                textUser!!.text = snapshot.child("username").value as String
+                var picUrl: String = snapshot.child("profilePictureUri").value as String
+                Log.d("DataListener", "მონაცემთა ბაზაში ცვლილებებია")
+
+                Picasso.get().load(picUrl).resize(80,80).centerCrop().into(profilePic)
+
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                // Getting Post failed, log a message
+                Log.w("ListenData", "loadUser:onCancelled", databaseError.toException())
+                // ...
+            }
+        })
+
+
+
+
+    }
 
 }
+
