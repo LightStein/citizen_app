@@ -114,7 +114,6 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
             fusedLocationProviderClient.requestLocationUpdates(LocationRequest(), LocationCallback(), Looper.myLooper())
         }
         expandMap()
-        camera()
         cameraButton.setOnClickListener {
             val callCameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
             if (callCameraIntent.resolveActivity(packageManager) != null) {
@@ -143,15 +142,6 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
 
     }   // ჯერჯერობით გზავნის კომენტარს
 
-    private fun camera() {
-        println("////////////////// camera /////////////////////")
-
-        cameraButton.setOnClickListener {
-
-            val intent = Intent(applicationContext, Camera::class.java)
-            startActivity(intent)
-        }
-    }   // კამერის გამშვები
 
     private fun expandMap() {
         println("////////////////// Expand Map /////////////////////")

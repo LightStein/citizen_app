@@ -1,6 +1,7 @@
 package com.abc.citizen
 
 import android.app.Activity
+import android.app.ProgressDialog
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
@@ -10,6 +11,8 @@ import android.net.Uri
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.MediaStore
+import android.support.v4.content.res.ResourcesCompat
+import android.text.Html
 import android.text.SpannableString
 import android.text.Spanned
 import android.text.style.ForegroundColorSpan
@@ -17,6 +20,7 @@ import android.util.Log
 import android.view.View
 import android.widget.Toast
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.storage.FirebaseStorage
@@ -27,16 +31,21 @@ import java.util.*
 class Login : AppCompatActivity() {
     private lateinit var database: DatabaseReference
 
-    private val spannableStringRegWhite = SpannableString("REGISTER")
-    private val spannableStringLogWhite = SpannableString("LOGIN")
+    private var _typeFace: Typeface? = null
 
-    private val spannableStringRegGray = SpannableString("REGISTER")
-    private val spannableStringLogGray = SpannableString("LOGIN")
+    private val spannableStringRegWhite = SpannableString("გაწევრიანება")
+    private val spannableStringLogWhite = SpannableString("შესვლა")
+
+    private val spannableStringRegGray = SpannableString("გაწევრიანება")
+    private val spannableStringLogGray = SpannableString("შესვლა")
 
     private val mWhite = ForegroundColorSpan(Color.WHITE)
     private val mGray = ForegroundColorSpan(Color.GRAY)
 
     private lateinit var auth: FirebaseAuth
+
+    private var mProgressBar: ProgressDialog? = null
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,30 +59,38 @@ class Login : AppCompatActivity() {
         database = FirebaseDatabase.getInstance().reference
 
         loginButton.setOnClickListener {
+            //////////////// Progress Bar ///////////////
+            mProgressBar = ProgressDialog(this)
+            //////////////// Progress Bar ///////////////
 
             if (LogEmailText.text.toString().isEmpty()) {
-                LogEmailText.error = "Please Enter your Email address"
-                Toast.makeText(applicationContext, "Enter your Email address", Toast.LENGTH_SHORT).show()
+                LogEmailText.error = "გთხოვთ შეიყვანოთ ელფოსტა"
+                Toast.makeText(applicationContext, "შეიყვანეთ ელფოსტა", Toast.LENGTH_SHORT).show()
             } else if (LogPasswordText.text.toString().isEmpty()) {
-                LogPasswordText.error = "Please Enter your Password"
-                Toast.makeText(applicationContext, "Enter the Password", Toast.LENGTH_SHORT).show()
+                LogPasswordText.error = "გთხოვთ შეიყვანოთ პაროლი"
+                Toast.makeText(applicationContext, "შეიყვანეთ პაროლი", Toast.LENGTH_SHORT).show()
             } else {
+                ///////////////////////
+                mProgressBar!!.setMessage("გთხოვთ დაიცადოთ...")
+                mProgressBar!!.show()
+                ////////////////////////
                 auth.signInWithEmailAndPassword(LogEmailText.text.toString(), LogPasswordText.text.toString())
                     .addOnCompleteListener(this) { task ->
                         if (task.isSuccessful) {
                             // Sign in success, update UI with the signed-in user's information
                             Log.d("success", "signInWithEmail:success")
                             val user = auth.currentUser
-
-                            Toast.makeText(this, "You've signed in successfully", Toast.LENGTH_SHORT).show()
+                            mProgressBar!!.hide()
+                            Toast.makeText(this, "თქვენ წარმატებით შეხვედით", Toast.LENGTH_SHORT).show()
                             val intent = Intent(baseContext, MainActivity::class.java)
                             startActivity(intent)
 
                         } else {
+                            mProgressBar!!.hide()
                             // If sign in fails, display a message to the user.
-                            Log.w("fail", "signInWithEmail:failure", task.exception)
+                            Log.w("fail", "მეილით შესვლის კრახი", task.exception)
                             Toast.makeText(
-                                this, "Authentication failed.",
+                                this, "გთხოვთ გადაამოწმოთ ინფრმაციის სისწორე",
                                 Toast.LENGTH_SHORT
                             ).show()
                         }
@@ -82,22 +99,26 @@ class Login : AppCompatActivity() {
         }
 
         regButton.setOnClickListener {
+            //////////////// Progress Bar ///////////////
+            mProgressBar = ProgressDialog(this)
+            //////////////// Progress Bar ///////////////
             if (regNameText.text.isEmpty() || regEmailText.text.isEmpty() ||
                 regPasswordText.text.isEmpty() || regConfirmPasswordText.text.isEmpty()
             )
                 Toast.makeText(
-                    this, "Please fill all the fields",
+                    this, "გთხოვთ შეავსოთ ყველა გრაფა",
                     Toast.LENGTH_LONG
                 ).show()
             else if (regPasswordText.text.toString() != regConfirmPasswordText.text.toString()) {
-                regConfirmPasswordText.error = "please Double-check your password"
+                regConfirmPasswordText.error = "გთხოვთ გადაამოწმოთ შეყვანამდე"
                 Toast.makeText(
-                    this, "Passwords Doesn't match",
+                    this, "პაროლები ერთმანეთს არ ემთხვევა",
                     Toast.LENGTH_LONG
                 ).show()
             } else {
+                mProgressBar!!.setMessage("გთხოვთ დაიცადოთ...")
+                mProgressBar!!.show()
                 uploadImageToFirebaseStorage()
-
 
             }
         }
@@ -109,7 +130,36 @@ class Login : AppCompatActivity() {
             startActivityForResult(intent,0)
         }
 
+        // fonts
+        this._typeFace = ResourcesCompat.getFont(this.applicationContext, R.font.achveull)
+        _initializeGUI()
     }
+
+    private fun _initializeGUI() {
+        LogEmailText.setHint(
+            Html.fromHtml("<small>" +
+                    "ელფოსტა" + "</small>"))
+
+        LogPasswordText.setHint(
+            Html.fromHtml("<small>" +
+                    "პაროლი" + "</small>"))
+        regEmailText.setHint(
+            Html.fromHtml("<small>" +
+                "ელფოსტა" + "</small>"))
+
+        regPasswordText.setHint(
+            Html.fromHtml("<small>" +
+                    "პაროლი" + "</small>"))
+
+        regConfirmPasswordText.setHint(
+            Html.fromHtml("<small>" +
+                    "გაიმეორეთ პაროლი" + "</small>"))
+
+        regNameText.setHint(
+            Html.fromHtml("<small>" +
+                    "სახელი" + "</small>"))
+
+    } // ფონტების მისანიჭებლად
 
     private fun uploadUserToFirebaseDatabase(profilePicUrl: String){
 
@@ -118,11 +168,12 @@ class Login : AppCompatActivity() {
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
                     // Sign in success, update UI with the signed-in user's information
-                    Log.d("Success", "createUserWithEmail:success")
+                    Log.d("Success", "მომხმარებლის აკაუნტის შექმნა : წარმატებით დასრულდა")
                     val user = auth.currentUser
                     writeNewUser(profilePicUrl ,user!!.uid, regNameText.text.toString(), regEmailText.text.toString())
+                    mProgressBar!!.hide()
                     Toast.makeText(
-                        this, "you have signed up successfully",
+                        this, "თქვენ წარმატებით გაწევრიანდით",
                         Toast.LENGTH_SHORT
                     ).show()
 
@@ -133,9 +184,10 @@ class Login : AppCompatActivity() {
 
                 } else {
                     // If sign in fails, display a message to the user.
-                    Log.w("Fail", "createUserWithEmail:failure", task.exception)
+                    mProgressBar!!.hide()
+                    Log.w("Fail", "მომხმარებლის აკაუნტის შექმნა : ჩაიშალა", task.exception)
                     Toast.makeText(
-                        this, "Authentication failed.",
+                        this, "რეგისტრაცია ჩაიშალა",
                         Toast.LENGTH_SHORT
                     ).show()
                 }
@@ -157,6 +209,7 @@ class Login : AppCompatActivity() {
                 ref.downloadUrl.addOnSuccessListener {
                     Log.d("RegisterActivity", "File Location: $it")
                     uploadUserToFirebaseDatabase(it.toString())
+
                 }
             }
     }
@@ -177,10 +230,10 @@ class Login : AppCompatActivity() {
     }
 
     private fun titleFontChange() {
-        spannableStringLogWhite.setSpan(mWhite, 0, 5, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-        spannableStringLogGray.setSpan(mGray, 0, 5, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-        spannableStringRegGray.setSpan(mGray, 0, 8, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-        spannableStringRegWhite.setSpan(mWhite, 0, 8, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        spannableStringLogWhite.setSpan(mWhite, 0, 6, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        spannableStringLogGray.setSpan(mGray, 0, 6, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        spannableStringRegGray.setSpan(mGray, 0, 12, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        spannableStringRegWhite.setSpan(mWhite, 0, 12, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
 
         loginSectorButton.text = spannableStringLogWhite
         registerSectorButton.text = spannableStringRegGray

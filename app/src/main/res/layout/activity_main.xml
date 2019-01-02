@@ -141,12 +141,11 @@
     </LinearLayout>
 
     <android.support.design.widget.NavigationView
+            android:id="@+id/nav_view"
             android:layout_width="260dp"
             android:layout_height="match_parent"
             app:menu="@menu/navigation_menu"
             app:headerLayout="@layout/nav_header"
-            android:layout_gravity="end" android:id="@+id/nav_view">
-
-    </android.support.design.widget.NavigationView>
+            android:layout_gravity="end" />
 
 </android.support.v4.widget.DrawerLayout>
