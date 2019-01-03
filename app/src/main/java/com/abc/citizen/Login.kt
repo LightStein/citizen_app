@@ -178,6 +178,9 @@ class Login : AppCompatActivity() {
                         Toast.LENGTH_SHORT
                     ).show()
 
+                    val intent = Intent(baseContext, MainActivity::class.java)
+                    startActivity(intent)
+
                     regEmailText.text.clear()
                     regPasswordText.text.clear()
                     regNameText.text.clear()
