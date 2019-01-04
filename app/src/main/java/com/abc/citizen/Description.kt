@@ -1,7 +1,7 @@
 package com.abc.citizen
 
 import android.app.Activity
-import android.content.Context
+import android.app.ProgressDialog
 import android.support.v7.app.AppCompatActivity
 import com.google.android.gms.maps.*
 import kotlinx.android.synthetic.main.activity_description.*
@@ -9,17 +9,14 @@ import com.google.android.gms.maps.model.*
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.location.Location
-import android.media.Image
-import android.net.Uri
 import android.os.*
 import android.provider.MediaStore
+import android.support.design.widget.NavigationView
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
-import android.text.Editable
+import android.util.Log
 import android.view.View
-import android.widget.ImageView
 import android.widget.Toast
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.GoogleMap
@@ -28,19 +25,24 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap.MAP_TYPE_SATELLITE
 import com.google.android.gms.maps.model.MarkerOptions
 import android.widget.LinearLayout
+import android.widget.TextView
 import com.abc.citizen.R.layout.activity_description
 import com.google.android.gms.common.api.GoogleApiClient
-import com.google.android.gms.tasks.OnSuccessListener
-import kotlinx.android.synthetic.*
-import java.io.*
-import java.net.Socket
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.*
+import com.squareup.picasso.Picasso
+import de.hdodenhof.circleimageview.CircleImageView
+import kotlinx.android.synthetic.main.nav_header.*
+import java.util.*
 
-var handler = Handler()
+
 lateinit var loc: Location
 
 class Description : AppCompatActivity(), OnMapReadyCallback {
     private var CAMERA_REQUEST_CODE = 0
     private lateinit var nMap: GoogleMap
+
+    private val category = "transport"
 
     // Location
     private var mMarker: Marker? = null
@@ -52,38 +54,84 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var locationRequest: LocationRequest
     private lateinit var locationCallback: LocationCallback
 
+    // firebase
+    private var mDatabase: FirebaseDatabase? = null
+    private var mDatabaseReference: DatabaseReference? = null
+    private var mAuth: FirebaseAuth? = null
+
+    // scroll menu
+    private var textUser: TextView? = null
+    private var textUserEmail: TextView? = null
+    private var imageProfile: CircleImageView? = null
+
+
+
+    // progressbar
+    private var mProgressBar: ProgressDialog? = null
+
 
     companion object {
         private const val MY_PERMISSION_CODE: Int = 1000
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        when (requestCode) {
-            CAMERA_REQUEST_CODE -> {
-                if (resultCode == Activity.RESULT_OK && data != null) {
-                    photoImageView.setImageBitmap(data.extras.get("data") as Bitmap)
-                }
+    private fun initialise() {
+        mDatabase = FirebaseDatabase.getInstance()
+        mDatabaseReference = mDatabase!!.reference.child("users")
+        mAuth = FirebaseAuth.getInstance()
+
+        val navigationView: NavigationView = findViewById(R.id.nav_view)
+        val headView: View = navigationView.getHeaderView(0)
+        imageProfile = headView.findViewById(R.id.profilePic)
+        textUser = headView.findViewById(R.id.userNameText)
+        textUserEmail = headView.findViewById(R.id.userEmailText)
+
+    }
+
+    override fun onStart() {
+        super.onStart()
+
+        val mUser = mAuth!!.currentUser
+        Log.d("USer ID",mUser!!.uid)
+        val mUserReference = mDatabaseReference!!.child(mUser.uid)
+
+        textUserEmail!!.text = mUser.email
+
+        mUserReference.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                // Get Post object and use the values to update the UI
+
+                Log.d("check database",snapshot.child("profilePictureUri").value as String)
+
+                textUser!!.text = snapshot.child("username").value as String
+                val picUrl: String = snapshot.child("profilePictureUri").value as String
+                Log.d("DataListener", "მონაცემთა ბაზაში ცვლილებებია")
+
+                Picasso.get().load(picUrl).resize(80, 80).centerCrop().into(imageProfile)
             }
-            else -> {
-                if (data == null)
-                    Toast.makeText(this, "Unrecognized request code (data = 0)", Toast.LENGTH_SHORT).show()
-                else
-                    Toast.makeText(
-                        this,
-                        "Unrecognized request code (resultCode != Activity.RESULT_OK)",
-                        Toast.LENGTH_SHORT
-                    ).show()
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                // Getting Post failed, log a message
+                Log.w("ListenData", "loadUser:onCancelled", databaseError.toException())
+                // ...
             }
-        }
+        })
+
 
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        println("//////////////////onCreate/////////////////////")
-
         super.onCreate(savedInstanceState)
         setContentView(activity_description)
+
+
+        println("//////////////////onCreate/////////////////////")
+        initialise()
+        expandMap()
+
+        //firebase initialization
+        mAuth = FirebaseAuth.getInstance()
+
+
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         val mapFragment = supportFragmentManager
             .findFragmentById(R.id.mapFragment) as SupportMapFragment
@@ -113,7 +161,7 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
             fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
             fusedLocationProviderClient.requestLocationUpdates(LocationRequest(), LocationCallback(), Looper.myLooper())
         }
-        expandMap()
+
         cameraButton.setOnClickListener {
             val callCameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
             if (callCameraIntent.resolveActivity(packageManager) != null) {
@@ -122,26 +170,59 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
 
         }   //  კამერის გამშვები
 
-        /////////////////////სურათის გასაგზავნად////////////////////////
+        ///////////////////// Firebase Database ////////////////////
+
 
     }
 
-    fun send(v: View) {
-        println("////////////////// send /////////////////////")
+    fun uploadPost(view:View){
+        val mUser = mAuth!!.currentUser
+        //////////////// Progress Bar ///////////////
+        mProgressBar = ProgressDialog(this)
+        //////////////// Progress Bar ///////////////
+        if (commentText.text.isEmpty())
+            Toast.makeText(
+                this, "გთხოვთ დაწეროთ კომენტარი",
+                Toast.LENGTH_LONG
+            ).show()
+        else {
+            mProgressBar!!.setMessage("გთხოვთ დაიცადოთ...")
+            mProgressBar!!.show()
+            val commentId = UUID.randomUUID().toString()
+            val pictureUrl = "http://ssa.gov.ge/files/01_GEO/Saagento/Struqtura/Raionebi/AFXAZETI.jpg"
+            writeNewPost(commentId,pictureUrl,mUser!!.uid,commentText.text.toString(),category)
+            mProgressBar!!.hide()
 
-        val messageSender = MessageSender()
-        messageSender.execute(commentText.text.toString())
+        }
 
-        Toast.makeText(this, "comment has been sent", Toast.LENGTH_SHORT).show()
-        commentText.text.clear()
+    }
 
-//    println("//////////////////"+loc.toString()+"/////////////////////")
-        //////////////////// location implementation /////////////////////
-//        addr.text=mLastLocation.latitude.toString()
+    private fun uploadPhotoToStorage(){
 
 
-    }   // ჯერჯერობით გზავნის კომენტარს
+    }
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        when (requestCode) {
+            CAMERA_REQUEST_CODE -> {
+                if (resultCode == Activity.RESULT_OK && data != null) {
+                    photoImageView.setImageBitmap(data.extras.get("data") as Bitmap)
+                }
+            }
+            else -> {
+                if (data == null)
+                    Toast.makeText(this, "Unrecognized request code (data = 0)", Toast.LENGTH_SHORT).show()
+                else
+                    Toast.makeText(
+                        this,
+                        "Unrecognized request code (resultCode != Activity.RESULT_OK)",
+                        Toast.LENGTH_SHORT
+                    ).show()
+            }
+        }
+
+    }
 
     private fun expandMap() {
         println("////////////////// Expand Map /////////////////////")
@@ -304,6 +385,7 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
     }   // აპის ჩაკეცვისას აჩერებს ადგილმდებარეობის განახლებებს
 
     override fun onMapReady(googleMap: GoogleMap) {
+        Log.d("onMapReady","On Map Ready Started")
         nMap = googleMap
         nMap.mapType = MAP_TYPE_SATELLITE
 
@@ -327,5 +409,19 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
         nMap.uiSettings.isZoomControlsEnabled = true
         nMap.uiSettings.isMapToolbarEnabled = false
     }   // რუკის პარამეტრები + ხელმეორედ მოწმდება ნებართვა
+
+    private fun writeNewPost(commentId: String, pictureUri: String, authorId: String, comment: String, category: String) {
+        mDatabaseReference = mDatabase!!.reference
+        val post = Post(pictureUri,authorId, comment, category)
+        mDatabaseReference!!.child("posts").child(commentId).setValue(post)
+    }
+
 }
+
+data class Post(
+    val pictureUri: String? = "",
+    var authorId: String? = "",
+    var comment: String? = "",
+    var category: String? = ""
+)
 

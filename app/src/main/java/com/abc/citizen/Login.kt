@@ -3,10 +3,8 @@ package com.abc.citizen
 import android.app.Activity
 import android.app.ProgressDialog
 import android.content.Intent
-import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.Typeface
-import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
@@ -20,11 +18,9 @@ import android.util.Log
 import android.view.View
 import android.widget.Toast
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.*
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.android.synthetic.main.activity_login.*
-import kotlinx.android.synthetic.main.nav_header.*
 import java.util.*
 
 class Login : AppCompatActivity() {
@@ -44,8 +40,6 @@ class Login : AppCompatActivity() {
     private lateinit var auth: FirebaseAuth
 
     private var mProgressBar: ProgressDialog? = null
-
-
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -161,6 +155,65 @@ class Login : AppCompatActivity() {
                     "სახელი" + "</small>"))
 
     } // ფონტების მისანიჭებლად
+    private fun titleFontChange() {
+        spannableStringLogWhite.setSpan(mWhite, 0, 6, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        spannableStringLogGray.setSpan(mGray, 0, 6, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        spannableStringRegGray.setSpan(mGray, 0, 12, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        spannableStringRegWhite.setSpan(mWhite, 0, 12, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+
+        loginSectorButton.text = spannableStringLogWhite
+        registerSectorButton.text = spannableStringRegGray
+
+        LogEmailText.visibility = View.VISIBLE
+        LogPasswordText.visibility = View.VISIBLE
+        loginButton.visibility = View.VISIBLE
+        regNameText.visibility = View.INVISIBLE
+        regEmailText.visibility = View.INVISIBLE
+        regPasswordText.visibility = View.INVISIBLE
+        regConfirmPasswordText.visibility = View.INVISIBLE
+        regButton.visibility = View.INVISIBLE
+        regProfilePic.visibility = View.INVISIBLE
+        circle_profile_picture.visibility = View.INVISIBLE
+
+        loginSectorButton.setOnClickListener {
+            registerSectorButton.typeface = Typeface.DEFAULT
+            loginSectorButton.typeface = Typeface.DEFAULT_BOLD
+
+            loginSectorButton.text = spannableStringLogWhite
+            registerSectorButton.text = spannableStringRegGray
+
+            LogEmailText.visibility = View.VISIBLE
+            LogPasswordText.visibility = View.VISIBLE
+            loginButton.visibility = View.VISIBLE
+            regNameText.visibility = View.INVISIBLE
+            regEmailText.visibility = View.INVISIBLE
+            regPasswordText.visibility = View.INVISIBLE
+            regConfirmPasswordText.visibility = View.INVISIBLE
+            regButton.visibility = View.INVISIBLE
+            regProfilePic.visibility = View.INVISIBLE
+            circle_profile_picture.visibility = View.INVISIBLE
+        }
+
+        registerSectorButton.setOnClickListener {
+            registerSectorButton.typeface = Typeface.DEFAULT_BOLD
+            loginSectorButton.typeface = Typeface.DEFAULT
+
+            loginSectorButton.text = spannableStringLogGray
+            registerSectorButton.text = spannableStringRegWhite
+
+            LogEmailText.visibility = View.INVISIBLE
+            LogPasswordText.visibility = View.INVISIBLE
+            loginButton.visibility = View.INVISIBLE
+            regNameText.visibility = View.VISIBLE
+            regEmailText.visibility = View.VISIBLE
+            regPasswordText.visibility = View.VISIBLE
+            regConfirmPasswordText.visibility = View.VISIBLE
+            regButton.visibility = View.VISIBLE
+            regProfilePic.visibility = View.VISIBLE
+            circle_profile_picture.visibility = View.VISIBLE
+        }
+
+    }
 
     private fun uploadUserToFirebaseDatabase(profilePicUrl: String){
 
@@ -228,69 +281,7 @@ class Login : AppCompatActivity() {
             val bitmap = MediaStore.Images.Media.getBitmap(contentResolver,selectedPhotoUri)
 
             circle_profile_picture.setImageBitmap(bitmap)
-//            val bitmapDrawable = BitmapDrawable(bitmap)
-//            regProfilePic.setBackgroundDrawable(bitmapDrawable)
         }
-    }
-
-    private fun titleFontChange() {
-        spannableStringLogWhite.setSpan(mWhite, 0, 6, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-        spannableStringLogGray.setSpan(mGray, 0, 6, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-        spannableStringRegGray.setSpan(mGray, 0, 12, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-        spannableStringRegWhite.setSpan(mWhite, 0, 12, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-
-        loginSectorButton.text = spannableStringLogWhite
-        registerSectorButton.text = spannableStringRegGray
-
-        LogEmailText.visibility = View.VISIBLE
-        LogPasswordText.visibility = View.VISIBLE
-        loginButton.visibility = View.VISIBLE
-        regNameText.visibility = View.INVISIBLE
-        regEmailText.visibility = View.INVISIBLE
-        regPasswordText.visibility = View.INVISIBLE
-        regConfirmPasswordText.visibility = View.INVISIBLE
-        regButton.visibility = View.INVISIBLE
-        regProfilePic.visibility = View.INVISIBLE
-        circle_profile_picture.visibility = View.INVISIBLE
-
-        loginSectorButton.setOnClickListener {
-            registerSectorButton.typeface = Typeface.DEFAULT
-            loginSectorButton.typeface = Typeface.DEFAULT_BOLD
-
-            loginSectorButton.text = spannableStringLogWhite
-            registerSectorButton.text = spannableStringRegGray
-
-            LogEmailText.visibility = View.VISIBLE
-            LogPasswordText.visibility = View.VISIBLE
-            loginButton.visibility = View.VISIBLE
-            regNameText.visibility = View.INVISIBLE
-            regEmailText.visibility = View.INVISIBLE
-            regPasswordText.visibility = View.INVISIBLE
-            regConfirmPasswordText.visibility = View.INVISIBLE
-            regButton.visibility = View.INVISIBLE
-            regProfilePic.visibility = View.INVISIBLE
-            circle_profile_picture.visibility = View.INVISIBLE
-        }
-
-        registerSectorButton.setOnClickListener {
-            registerSectorButton.typeface = Typeface.DEFAULT_BOLD
-            loginSectorButton.typeface = Typeface.DEFAULT
-
-            loginSectorButton.text = spannableStringLogGray
-            registerSectorButton.text = spannableStringRegWhite
-
-            LogEmailText.visibility = View.INVISIBLE
-            LogPasswordText.visibility = View.INVISIBLE
-            loginButton.visibility = View.INVISIBLE
-            regNameText.visibility = View.VISIBLE
-            regEmailText.visibility = View.VISIBLE
-            regPasswordText.visibility = View.VISIBLE
-            regConfirmPasswordText.visibility = View.VISIBLE
-            regButton.visibility = View.VISIBLE
-            regProfilePic.visibility = View.VISIBLE
-            circle_profile_picture.visibility = View.VISIBLE
-        }
-
     }
 
     private fun writeNewUser(profilePictureUri: String ,userId: String, name: String, email: String?) {

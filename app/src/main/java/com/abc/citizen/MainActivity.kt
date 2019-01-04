@@ -32,7 +32,6 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         initialise()
 
-
         button_transport.setOnClickListener {
             val intent = Intent(applicationContext, Description::class.java)
             startActivity(intent)
@@ -44,7 +43,6 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-
     private fun initialise() {
         mDatabase = FirebaseDatabase.getInstance()
         mDatabaseReference = mDatabase!!.reference!!.child("users")
@@ -53,11 +51,10 @@ class MainActivity : AppCompatActivity() {
         val navigationView: NavigationView = findViewById(R.id.nav_view)
         val headView: View = navigationView.getHeaderView(0)
         imageProfile = headView.findViewById(R.id.profilePic)
-        textUser= headView.findViewById(R.id.userNameText)
-        textUserEmail= headView.findViewById(R.id.userEmailText)
+        textUser = headView.findViewById(R.id.userNameText)
+        textUserEmail = headView.findViewById(R.id.userEmailText)
 
     }
-
 
     override fun onStart() {
         super.onStart()
@@ -75,8 +72,7 @@ class MainActivity : AppCompatActivity() {
                 var picUrl: String = snapshot.child("profilePictureUri").value as String
                 Log.d("DataListener", "მონაცემთა ბაზაში ცვლილებებია")
 
-                Picasso.get().load(picUrl).resize(80,80).centerCrop().into(profilePic)
-
+                Picasso.get().load(picUrl).resize(80, 80).centerCrop().into(imageProfile)
             }
 
             override fun onCancelled(databaseError: DatabaseError) {
@@ -85,8 +81,6 @@ class MainActivity : AppCompatActivity() {
                 // ...
             }
         })
-
-
 
 
     }
