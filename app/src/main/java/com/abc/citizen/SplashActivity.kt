@@ -1,10 +1,15 @@
 package com.abc.citizen
 
 import android.content.Intent
+import android.net.Uri
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
+import android.view.View
+import android.widget.MediaController
+import android.widget.VideoView
 import com.google.firebase.auth.FirebaseAuth
+import kotlinx.android.synthetic.main.activity_splash.*
 import java.lang.Exception
 
 class SplashActivity : AppCompatActivity() {
@@ -27,11 +32,20 @@ class SplashActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_splash)
+
+        val fileName = "intro"
+        val filePlace="android.resource://"+packageName + "/raw/" + R.raw.intro
+        val videoview = findViewById<View>(R.id.videoView) as VideoView
+
+        videoview.setVideoURI(Uri.parse(filePlace))
+
+        videoview.start()
+
     }
 
     override fun onStart() {
         super.onStart()
-        handler.postDelayed(runnable,2000)
+        handler.postDelayed(runnable,3000)
     }
 
     override fun onPause() {
