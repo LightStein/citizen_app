@@ -94,11 +94,13 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
 
     }
 
+
     override fun onStart() {
         super.onStart()
 
         userCheck()
     }
+
 
     private fun userCheck() {
 
@@ -130,6 +132,7 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
 
 
     }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -204,10 +207,9 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
 
         }   //  კამერის გამშვები
 
-        ///////////////////// Firebase Database ////////////////////
-
 
     }
+
 
     fun uploadPost(view: View) {
         ///////////////// Photo upload ////////////////
@@ -268,17 +270,6 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
         startActivityForResult(intent, 8)
     }
 
-    fun getFile(): File? {
-        val fileDir =
-            File("" + Environment.getExternalStorageDirectory() + "/Android/data/" + applicationContext.packageName + "/Files")
-        if (!fileDir.exists()) {
-            if (!fileDir.mkdirs()) {
-                Log.e("getFile", "სურათი არ მოიძებნა")
-                return null
-            }
-        }
-        return File(fileDir.getPath() + File.separator + "temp.jpg")
-    }
 
     private fun createImageFile(): File? {
         val fileName = "temp"
@@ -302,9 +293,6 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
                 if (resultCode == Activity.RESULT_OK && data != null) {
 
                     photoImageView.setImageURI(Uri.parse(photoPath))
-//                    val photoBitmap = data.extras.get("data") as Bitmap
-//                    photoImageView.setImageBitmap(photoBitmap)
-
                 }
             }
             8 -> {
