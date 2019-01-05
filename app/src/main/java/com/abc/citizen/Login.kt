@@ -122,7 +122,7 @@ class Login : AppCompatActivity() {
         regProfilePic.setOnClickListener {
             val intent = Intent(Intent.ACTION_PICK)
             intent.type = "image/*"
-            startActivityForResult(intent,0)
+            startActivityForResult(intent, 0)
         }
 
         // fonts
@@ -132,29 +132,48 @@ class Login : AppCompatActivity() {
 
     private fun _initializeGUI() {
         LogEmailText.setHint(
-            Html.fromHtml("<small>" +
-                    "ელფოსტა" + "</small>"))
+            Html.fromHtml(
+                "<small>" +
+                        "ელფოსტა" + "</small>"
+            )
+        )
 
         LogPasswordText.setHint(
-            Html.fromHtml("<small>" +
-                    "პაროლი" + "</small>"))
+            Html.fromHtml(
+                "<small>" +
+                        "პაროლი" + "</small>"
+            )
+        )
         regEmailText.setHint(
-            Html.fromHtml("<small>" +
-                "ელფოსტა" + "</small>"))
+            Html.fromHtml(
+                "<small>" +
+                        "ელფოსტა" + "</small>"
+            )
+        )
 
         regPasswordText.setHint(
-            Html.fromHtml("<small>" +
-                    "პაროლი" + "</small>"))
+            Html.fromHtml(
+                "<small>" +
+                        "პაროლი" + "</small>"
+            )
+        )
 
         regConfirmPasswordText.setHint(
-            Html.fromHtml("<small>" +
-                    "გაიმეორეთ პაროლი" + "</small>"))
+            Html.fromHtml(
+                "<small>" +
+                        "გაიმეორეთ პაროლი" + "</small>"
+            )
+        )
 
         regNameText.setHint(
-            Html.fromHtml("<small>" +
-                    "სახელი" + "</small>"))
+            Html.fromHtml(
+                "<small>" +
+                        "სახელი" + "</small>"
+            )
+        )
 
     } // ფონტების მისანიჭებლად
+
     private fun titleFontChange() {
         spannableStringLogWhite.setSpan(mWhite, 0, 6, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
         spannableStringLogGray.setSpan(mGray, 0, 6, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
@@ -215,7 +234,7 @@ class Login : AppCompatActivity() {
 
     }
 
-    private fun uploadUserToFirebaseDatabase(profilePicUrl: String){
+    private fun uploadUserToFirebaseDatabase(profilePicUrl: String) {
 
         // Firebase-ზე იგზავნება სახელი მეილი და პაროლი
         auth.createUserWithEmailAndPassword(regEmailText.text.toString(), regPasswordText.text.toString())
@@ -224,7 +243,7 @@ class Login : AppCompatActivity() {
                     // Sign in success, update UI with the signed-in user's information
                     Log.d("Success", "მომხმარებლის აკაუნტის შექმნა : წარმატებით დასრულდა")
                     val user = auth.currentUser
-                    writeNewUser(profilePicUrl ,user!!.uid, regNameText.text.toString(), regEmailText.text.toString())
+                    writeNewUser(profilePicUrl, user!!.uid, regNameText.text.toString(), regEmailText.text.toString())
                     mProgressBar!!.hide()
                     Toast.makeText(
                         this, "თქვენ წარმატებით გაწევრიანდით",
@@ -253,7 +272,7 @@ class Login : AppCompatActivity() {
 
     }
 
-    private fun uploadImageToFirebaseStorage(){
+    private fun uploadImageToFirebaseStorage() {
         if (selectedPhotoUri == null)
             return
 
@@ -275,17 +294,17 @@ class Login : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
-        if (requestCode==0 && resultCode == Activity.RESULT_OK && data != null){
+        if (requestCode == 0 && resultCode == Activity.RESULT_OK && data != null) {
             // შევამოწმებთ მიღებულ სურათს
             selectedPhotoUri = data.data
-            val bitmap = MediaStore.Images.Media.getBitmap(contentResolver,selectedPhotoUri)
+            val bitmap = MediaStore.Images.Media.getBitmap(contentResolver, selectedPhotoUri)
 
             circle_profile_picture.setImageBitmap(bitmap)
         }
     }
 
-    private fun writeNewUser(profilePictureUri: String ,userId: String, name: String, email: String?) {
-        val user = User(profilePictureUri,userId, name, email)
+    private fun writeNewUser(profilePictureUri: String, userId: String, name: String, email: String?) {
+        val user = User(profilePictureUri, userId, name, email)
         database.child("users").child(userId).setValue(user)
     }
 

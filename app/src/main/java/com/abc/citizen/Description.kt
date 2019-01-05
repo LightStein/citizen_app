@@ -200,8 +200,8 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
                         photoFile
                     )
                 }
-                    callCameraIntent.putExtra(MediaStore.EXTRA_OUTPUT,selectedPhotoUri)
-                    startActivityForResult(callCameraIntent, CAMERA_REQUEST_CODE)
+                callCameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, selectedPhotoUri)
+                startActivityForResult(callCameraIntent, CAMERA_REQUEST_CODE)
 
             }
 
