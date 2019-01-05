@@ -83,7 +83,7 @@ class Login : AppCompatActivity() {
                         } else {
                             mProgressBar!!.hide()
                             // If sign in fails, display a message to the user.
-                            Log.w("fail", "მეილით შესვლის კრახი", task.exception)
+                            Log.w("fail", "ავტორიზაცია ჩაიშალა", task.exception)
                             Toast.makeText(
                                 this, "გთხოვთ გადაამოწმოთ ინფრმაციის სისწორე",
                                 Toast.LENGTH_SHORT
@@ -258,7 +258,7 @@ class Login : AppCompatActivity() {
             return
 
         val filename = UUID.randomUUID().toString()
-        val ref = FirebaseStorage.getInstance().getReference("/images/$filename")
+        val ref = FirebaseStorage.getInstance().getReference("/profile_pictures/$filename")
 
         ref.putFile(selectedPhotoUri!!)
             .addOnSuccessListener {
@@ -292,7 +292,7 @@ class Login : AppCompatActivity() {
 }
 
 data class User(
-    val profilePictureUri: String = "",
+    val profilePictureUri: String? = "",
     var userId: String? = "",
     var username: String? = "",
     var email: String? = ""

@@ -80,7 +80,7 @@
                 android:id="@+id/uploadPhotoButton" android:layout_marginBottom="8dp"
                 app:layout_constraintBottom_toTopOf="@+id/cameraButton"
                 app:layout_constraintStart_toStartOf="@+id/cameraButton"
-                app:layout_constraintEnd_toEndOf="@+id/cameraButton"/>
+                app:layout_constraintEnd_toEndOf="@+id/cameraButton" android:onClick="choosePhotoFromGallery"/>
         <TextView
                 android:text="..."
                 android:layout_width="wrap_content"

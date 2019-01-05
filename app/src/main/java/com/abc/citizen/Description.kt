@@ -10,13 +10,16 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.location.Location
+import android.net.Uri
 import android.os.*
 import android.provider.MediaStore
 import android.support.design.widget.NavigationView
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
+import android.support.v4.content.FileProvider
 import android.util.Log
 import android.view.View
+import android.widget.ImageView
 import android.widget.Toast
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.GoogleMap
@@ -30,9 +33,12 @@ import com.abc.citizen.R.layout.activity_description
 import com.google.android.gms.common.api.GoogleApiClient
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
+import com.google.firebase.storage.FirebaseStorage
 import com.squareup.picasso.Picasso
 import de.hdodenhof.circleimageview.CircleImageView
 import kotlinx.android.synthetic.main.nav_header.*
+import java.io.File
+import java.io.IOException
 import java.util.*
 
 
@@ -65,9 +71,10 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
     private var imageProfile: CircleImageView? = null
 
 
-
     // progressbar
     private var mProgressBar: ProgressDialog? = null
+
+    lateinit var photoPath: String
 
 
     companion object {
@@ -90,8 +97,13 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
     override fun onStart() {
         super.onStart()
 
+        userCheck()
+    }
+
+    private fun userCheck() {
+
         val mUser = mAuth!!.currentUser
-        Log.d("USer ID",mUser!!.uid)
+        Log.d("USer ID", mUser!!.uid)
         val mUserReference = mDatabaseReference!!.child(mUser.uid)
 
         textUserEmail!!.text = mUser.email
@@ -100,7 +112,7 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
             override fun onDataChange(snapshot: DataSnapshot) {
                 // Get Post object and use the values to update the UI
 
-                Log.d("check database",snapshot.child("profilePictureUri").value as String)
+                Log.d("check database", snapshot.child("profilePictureUri").value as String)
 
                 textUser!!.text = snapshot.child("username").value as String
                 val picUrl: String = snapshot.child("profilePictureUri").value as String
@@ -123,6 +135,10 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
         super.onCreate(savedInstanceState)
         setContentView(activity_description)
 
+
+        //////////////// Progress Bar ///////////////
+        mProgressBar = ProgressDialog(this)
+        //////////////// Progress Bar ///////////////
 
         println("//////////////////onCreate/////////////////////")
         initialise()
@@ -164,8 +180,26 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
 
         cameraButton.setOnClickListener {
             val callCameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+
             if (callCameraIntent.resolveActivity(packageManager) != null) {
-                startActivityForResult(callCameraIntent, CAMERA_REQUEST_CODE)
+
+
+                var photoFile: File? = null
+                try {
+                    photoFile = createImageFile()
+                } catch (e: IOException) {
+                }
+                if (photoFile != null) {
+
+                    selectedPhotoUri = FileProvider.getUriForFile(
+                        this,
+                        "com.abc.citizen.fileprovider",
+                        photoFile
+                    )
+                }
+                    callCameraIntent.putExtra(MediaStore.EXTRA_OUTPUT,selectedPhotoUri)
+                    startActivityForResult(callCameraIntent, CAMERA_REQUEST_CODE)
+
             }
 
         }   //  კამერის გამშვები
@@ -175,39 +209,110 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
 
     }
 
-    fun uploadPost(view:View){
+    fun uploadPost(view: View) {
+        ///////////////// Photo upload ////////////////
+        uploadPhotoToStorage(selectedPhotoUri)
+
+    }
+
+
+    private fun uploadPostToDatabase(photoUrl: String) {
+
         val mUser = mAuth!!.currentUser
-        //////////////// Progress Bar ///////////////
-        mProgressBar = ProgressDialog(this)
-        //////////////// Progress Bar ///////////////
+
         if (commentText.text.isEmpty())
             Toast.makeText(
                 this, "გთხოვთ დაწეროთ კომენტარი",
                 Toast.LENGTH_LONG
             ).show()
         else {
-            mProgressBar!!.setMessage("გთხოვთ დაიცადოთ...")
-            mProgressBar!!.show()
-            val commentId = UUID.randomUUID().toString()
-            val pictureUrl = "http://ssa.gov.ge/files/01_GEO/Saagento/Struqtura/Raionebi/AFXAZETI.jpg"
-            writeNewPost(commentId,pictureUrl,mUser!!.uid,commentText.text.toString(),category)
-            mProgressBar!!.hide()
 
+            val commentId = UUID.randomUUID().toString()
+            Log.d("Photo URL", photoUrl)
+            writeNewPost(commentId, photoUrl, mUser!!.uid, commentText.text.toString(), category)
+            commentText.text.clear()
+            photoImageView.setImageResource(android.R.color.transparent)
+            mProgressBar!!.hide()
+            Toast.makeText(this, "განცხადება წარმატებით აიტვირთა", Toast.LENGTH_SHORT).show()
         }
 
     }
 
-    private fun uploadPhotoToStorage(){
 
+    fun uploadPhotoToStorage(selectedPhotoUri: Uri?) {
 
+        if (selectedPhotoUri != null) {
+            mProgressBar!!.setMessage("გთხოვთ დაიცადოთ...")
+            mProgressBar!!.show()
+            val filename = UUID.randomUUID().toString()
+            val ref = FirebaseStorage.getInstance().getReference("/post_pictures/$filename")
+
+            ref.putFile(selectedPhotoUri)
+                .addOnSuccessListener {
+                    Log.d("Register Activity", "წარმატებით აიტვირთა სურათი: ${it.metadata?.path}")
+                    ref.downloadUrl.addOnSuccessListener {
+                        Log.d("RegisterActivity", "File Location: $it")
+//                    uploadUserToFirebaseDatabase(it.toString())
+                        uploadPostToDatabase(it.toString())
+                    }
+                }
+        } else {
+            Toast.makeText(this, "გთხოვთ აირჩიოთ სურათი", Toast.LENGTH_SHORT).show()
+        }
     }
 
+
+    fun choosePhotoFromGallery(view: View) {
+        val intent = Intent(Intent.ACTION_PICK)
+        intent.type = "image/*"
+        startActivityForResult(intent, 8)
+    }
+
+    fun getFile(): File? {
+        val fileDir =
+            File("" + Environment.getExternalStorageDirectory() + "/Android/data/" + applicationContext.packageName + "/Files")
+        if (!fileDir.exists()) {
+            if (!fileDir.mkdirs()) {
+                Log.e("getFile", "სურათი არ მოიძებნა")
+                return null
+            }
+        }
+        return File(fileDir.getPath() + File.separator + "temp.jpg")
+    }
+
+    private fun createImageFile(): File? {
+        val fileName = "temp"
+        val storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+        val image = File.createTempFile(
+            fileName,
+            ".jpg",
+            storageDir
+        )
+
+        photoPath = image.absolutePath
+
+        return image
+    }
+
+    var selectedPhotoUri: Uri? = null
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         when (requestCode) {
             CAMERA_REQUEST_CODE -> {
                 if (resultCode == Activity.RESULT_OK && data != null) {
-                    photoImageView.setImageBitmap(data.extras.get("data") as Bitmap)
+
+                    photoImageView.setImageURI(Uri.parse(photoPath))
+//                    val photoBitmap = data.extras.get("data") as Bitmap
+//                    photoImageView.setImageBitmap(photoBitmap)
+
+                }
+            }
+            8 -> {
+                if (resultCode == Activity.RESULT_OK && data != null) {
+                    // შევამოწმებთ მიღებულ სურათს
+                    selectedPhotoUri = data.data
+                    val bitmap = MediaStore.Images.Media.getBitmap(contentResolver, selectedPhotoUri)
+                    photoImageView.setImageBitmap(bitmap)
                 }
             }
             else -> {
@@ -222,7 +327,9 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
             }
         }
 
+
     }
+
 
     private fun expandMap() {
         println("////////////////// Expand Map /////////////////////")
@@ -314,6 +421,7 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
+
     private fun buildLocationRequest() {
         locationRequest = LocationRequest()
         locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
@@ -321,6 +429,7 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
         locationRequest.fastestInterval = 3000
         locationRequest.smallestDisplacement = 10f
     }   //  ადგილმდებარეობის მოთხოვნის პარამეტრები
+
 
     private fun checkLocationPermission(): Boolean {
 
@@ -378,14 +487,16 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
+
     override fun onStop() {
         println("///////////////////// Stopped //////////////////////")
         fusedLocationProviderClient.removeLocationUpdates(locationCallback)
         super.onStop()
     }   // აპის ჩაკეცვისას აჩერებს ადგილმდებარეობის განახლებებს
 
+
     override fun onMapReady(googleMap: GoogleMap) {
-        Log.d("onMapReady","On Map Ready Started")
+        Log.d("onMapReady", "On Map Ready Started")
         nMap = googleMap
         nMap.mapType = MAP_TYPE_SATELLITE
 
@@ -410,9 +521,16 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
         nMap.uiSettings.isMapToolbarEnabled = false
     }   // რუკის პარამეტრები + ხელმეორედ მოწმდება ნებართვა
 
-    private fun writeNewPost(commentId: String, pictureUri: String, authorId: String, comment: String, category: String) {
+
+    private fun writeNewPost(
+        commentId: String,
+        pictureUri: String,
+        authorId: String,
+        comment: String,
+        category: String
+    ) {
         mDatabaseReference = mDatabase!!.reference
-        val post = Post(pictureUri,authorId, comment, category)
+        val post = Post(pictureUri, authorId, comment, category)
         mDatabaseReference!!.child("posts").child(commentId).setValue(post)
     }
 
