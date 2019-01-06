@@ -283,7 +283,7 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
         when (requestCode) {
             CAMERA_REQUEST_CODE -> {
                 if (resultCode == Activity.RESULT_OK && data != null) {
-                    photoImageView.setImageURI(Uri.parse(photoPath))
+                    photoImageView.setImageURI(selectedPhotoUri)
                 }
             }
             8 -> {
