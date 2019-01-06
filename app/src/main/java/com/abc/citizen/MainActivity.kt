@@ -60,30 +60,34 @@ class MainActivity : AppCompatActivity() {
         super.onStart()
 
         val mUser = mAuth!!.currentUser
-        val mUserReference = mDatabaseReference!!.child(mUser!!.uid)
 
-        textUserEmail!!.text = mUser.email
+        if (mUser != null) {
+            val mUserReference = mDatabaseReference!!.child(mUser!!.uid)
 
-        mUserReference.addValueEventListener(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                // Get Post object and use the values to update the UI
+            textUserEmail!!.text = mUser.email
 
-                textUser!!.text = snapshot.child("username").value as String
-                var picUrl: String = snapshot.child("profilePictureUri").value as String
-                Log.d("DataListener", "მონაცემთა ბაზაში ცვლილებებია")
+            mUserReference.addValueEventListener(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    // Get Post object and use the values to update the UI
 
-                Picasso.get().load(picUrl).resize(80, 80).centerCrop().into(imageProfile)
-            }
+                    textUser!!.text = snapshot.child("username").value as String
+                    var picUrl: String = snapshot.child("profilePictureUri").value as String
+                    Log.d("DataListener", "მონაცემთა ბაზაში ცვლილებებია")
 
-            override fun onCancelled(databaseError: DatabaseError) {
-                // Getting Post failed, log a message
-                Log.w("ListenData", "loadUser:onCancelled", databaseError.toException())
-                // ...
-            }
-        })
+                    Picasso.get().load(picUrl).resize(80, 80).centerCrop().into(imageProfile)
+                }
 
-
+                override fun onCancelled(databaseError: DatabaseError) {
+                    // Getting Post failed, log a message
+                    Log.w("ListenData", "loadUser:onCancelled", databaseError.toException())
+                    // ...
+                }
+            })
+        }
+        else{
+            Toast.makeText(this,"No User Loaded",Toast.LENGTH_SHORT).show()
+            imageProfile!!.setImageResource(android.R.color.transparent)
+        }
     }
-
 }
 

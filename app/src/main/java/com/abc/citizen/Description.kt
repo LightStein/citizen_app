@@ -63,6 +63,7 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
     // firebase
     private var mDatabase: FirebaseDatabase? = null
     private var mDatabaseReference: DatabaseReference? = null
+    private var mUserDatabaseReference: DatabaseReference? = null
     private var mAuth: FirebaseAuth? = null
 
     // scroll menu
@@ -83,7 +84,8 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
 
     private fun initialise() {
         mDatabase = FirebaseDatabase.getInstance()
-        mDatabaseReference = mDatabase!!.reference.child("users")
+        mDatabaseReference = mDatabase!!.reference
+        mUserDatabaseReference = mDatabase!!.reference.child("users")
         mAuth = FirebaseAuth.getInstance()
 
         val navigationView: NavigationView = findViewById(R.id.nav_view)
@@ -94,49 +96,44 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
 
     }
 
-
     override fun onStart() {
         super.onStart()
 
-        userCheck()
-    }
-
-
-    private fun userCheck() {
-
         val mUser = mAuth!!.currentUser
-        Log.d("USer ID", mUser!!.uid)
-        val mUserReference = mDatabaseReference!!.child(mUser.uid)
 
-        textUserEmail!!.text = mUser.email
+        if (mUser != null) {
+            val mUserReference = mUserDatabaseReference!!.child(mUser.uid)
 
-        mUserReference.addValueEventListener(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                // Get Post object and use the values to update the UI
+            textUserEmail!!.text = mUser.email
 
-                Log.d("check database", snapshot.child("profilePictureUri").value as String)
+            mUserReference.addValueEventListener(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    // Get Post object and use the values to update the UI
 
-                textUser!!.text = snapshot.child("username").value as String
-                val picUrl: String = snapshot.child("profilePictureUri").value as String
-                Log.d("DataListener", "მონაცემთა ბაზაში ცვლილებებია")
+                    textUser!!.text = snapshot.child("username").value as String
+                    var picUrl: String = snapshot.child("profilePictureUri").value as String
+                    Log.d("DataListener", "მონაცემთა ბაზაში ცვლილებებია")
 
-                Picasso.get().load(picUrl).resize(80, 80).centerCrop().into(imageProfile)
-            }
+                    Picasso.get().load(picUrl).resize(80, 80).centerCrop().into(imageProfile)
+                }
 
-            override fun onCancelled(databaseError: DatabaseError) {
-                // Getting Post failed, log a message
-                Log.w("ListenData", "loadUser:onCancelled", databaseError.toException())
-                // ...
-            }
-        })
-
-
+                override fun onCancelled(databaseError: DatabaseError) {
+                    // Getting Post failed, log a message
+                    Log.w("ListenData", "loadUser:onCancelled", databaseError.toException())
+                    // ...
+                }
+            })
+        }
+        else{
+            Toast.makeText(this,"No User Loaded",Toast.LENGTH_SHORT).show()
+            imageProfile!!.setImageResource(android.R.color.transparent)
+        }
     }
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(activity_description)
+
 
 
         //////////////// Progress Bar ///////////////
@@ -206,10 +203,7 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
             }
 
         }   //  კამერის გამშვები
-
-
     }
-
 
     fun uploadPost(view: View) {
         ///////////////// Photo upload ////////////////
@@ -237,9 +231,7 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
             mProgressBar!!.hide()
             Toast.makeText(this, "განცხადება წარმატებით აიტვირთა", Toast.LENGTH_SHORT).show()
         }
-
     }
-
 
     fun uploadPhotoToStorage(selectedPhotoUri: Uri?) {
 
@@ -291,7 +283,6 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
         when (requestCode) {
             CAMERA_REQUEST_CODE -> {
                 if (resultCode == Activity.RESULT_OK && data != null) {
-
                     photoImageView.setImageURI(Uri.parse(photoPath))
                 }
             }
@@ -517,7 +508,7 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
         comment: String,
         category: String
     ) {
-        mDatabaseReference = mDatabase!!.reference
+
         val post = Post(pictureUri, authorId, comment, category)
         mDatabaseReference!!.child("posts").child(commentId).setValue(post)
     }
