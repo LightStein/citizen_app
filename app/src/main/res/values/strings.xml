@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Citizen</string>
+    <string name="app_name">მოქალაქე</string>
     <string name="title_activity_maps">Map</string>
     <string name="open">Open</string>
     <string name="close">Close</string>
