@@ -1,25 +1,27 @@
 package com.abc.citizen
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.ProgressDialog
+import android.content.Context
 import android.support.v7.app.AppCompatActivity
 import com.google.android.gms.maps.*
 import kotlinx.android.synthetic.main.activity_description.*
 import com.google.android.gms.maps.model.*
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
 import android.location.Location
+import android.location.LocationManager
 import android.net.Uri
 import android.os.*
 import android.provider.MediaStore
+import android.provider.Settings
 import android.support.design.widget.NavigationView
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
 import android.support.v4.content.FileProvider
 import android.util.Log
 import android.view.View
-import android.widget.ImageView
 import android.widget.Toast
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.GoogleMap
@@ -30,13 +32,11 @@ import com.google.android.gms.maps.model.MarkerOptions
 import android.widget.LinearLayout
 import android.widget.TextView
 import com.abc.citizen.R.layout.activity_description
-import com.google.android.gms.common.api.GoogleApiClient
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import com.google.firebase.storage.FirebaseStorage
 import com.squareup.picasso.Picasso
 import de.hdodenhof.circleimageview.CircleImageView
-import kotlinx.android.synthetic.main.nav_header.*
 import java.io.File
 import java.io.IOException
 import java.util.*
@@ -46,19 +46,22 @@ lateinit var loc: Location
 
 class Description : AppCompatActivity(), OnMapReadyCallback {
     private var CAMERA_REQUEST_CODE = 0
+    private var GALLERY_REQUEST_CODE = 8
+
     private lateinit var nMap: GoogleMap
 
     private val category = "transport"
 
     // Location
+    private var isGpsEnabled = false
     private var mMarker: Marker? = null
     private lateinit var mLastLocation: Location
     private var latitude: Double = 0.toDouble()
     private var longitude: Double = 0.toDouble()
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
-    private lateinit var client: GoogleApiClient
     private lateinit var locationRequest: LocationRequest
     private lateinit var locationCallback: LocationCallback
+    lateinit var locationManager: LocationManager
 
     // firebase
     private var mDatabase: FirebaseDatabase? = null
@@ -82,7 +85,12 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
         private const val MY_PERMISSION_CODE: Int = 1000
     }
 
+    @SuppressLint("MissingPermission")
+
+
     private fun initialise() {
+        locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+
         mDatabase = FirebaseDatabase.getInstance()
         mDatabaseReference = mDatabase!!.reference
         mUserDatabaseReference = mDatabase!!.reference.child("users")
@@ -96,8 +104,18 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
 
     }
 
+
     override fun onStart() {
         super.onStart()
+
+        buildLocationCallBack()
+
+        isGpsEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+
+        if (!isGpsEnabled) {
+            Toast.makeText(this, "გთხოვთ ჩართოთ ნავიგაცია", Toast.LENGTH_SHORT).show()
+        }
+
 
         val mUser = mAuth!!.currentUser
 
@@ -123,17 +141,16 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
                     // ...
                 }
             })
-        }
-        else{
-            Toast.makeText(this,"No User Loaded",Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(this, "No User Loaded", Toast.LENGTH_SHORT).show()
             imageProfile!!.setImageResource(android.R.color.transparent)
         }
     }
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(activity_description)
-
 
 
         //////////////// Progress Bar ///////////////
@@ -175,7 +192,11 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
             buildLocationCallBack()
 
             fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
-            fusedLocationProviderClient.requestLocationUpdates(LocationRequest(), LocationCallback(), Looper.myLooper())
+            fusedLocationProviderClient.requestLocationUpdates(
+                LocationRequest(),
+                LocationCallback(),
+                Looper.myLooper()
+            )
         }
 
         cameraButton.setOnClickListener {
@@ -205,6 +226,7 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
         }   //  კამერის გამშვები
     }
 
+
     fun uploadPost(view: View) {
         ///////////////// Photo upload ////////////////
         uploadPhotoToStorage(selectedPhotoUri)
@@ -233,6 +255,7 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
+
     fun uploadPhotoToStorage(selectedPhotoUri: Uri?) {
 
         if (selectedPhotoUri != null) {
@@ -259,7 +282,7 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
     fun choosePhotoFromGallery(view: View) {
         val intent = Intent(Intent.ACTION_PICK)
         intent.type = "image/*"
-        startActivityForResult(intent, 8)
+        startActivityForResult(intent, GALLERY_REQUEST_CODE)
     }
 
 
@@ -286,7 +309,7 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
                     photoImageView.setImageURI(Uri.parse(photoPath))
                 }
             }
-            8 -> {
+            GALLERY_REQUEST_CODE -> {
                 if (resultCode == Activity.RESULT_OK && data != null) {
                     // შევამოწმებთ მიღებულ სურათს
                     selectedPhotoUri = data.data
@@ -374,17 +397,13 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
 
         locationCallback = object : LocationCallback() {
             override fun onLocationResult(p0: LocationResult?) {
-                println("//////////////////  onLocation Result /////////////////////")
 
                 mLastLocation = p0!!.locations.get(p0.locations.size - 1) // get last location
-                loc = mLastLocation
-                println(loc)
                 if (mMarker != null)
                     mMarker!!.remove()
                 latitude = mLastLocation.latitude
                 longitude = mLastLocation.longitude
                 val latLng = LatLng(latitude, longitude)
-                println("///////////////    Lat Lng    ////////////////////")
                 val markerOptions = MarkerOptions()
                     .position(latLng)
                     .title("your position")
@@ -392,7 +411,6 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
                 mMarker = nMap.addMarker(markerOptions)
 
                 // move camera
-                println("/////////////////  Move Camera  //////////////////")
                 nMap.moveCamera(CameraUpdateFactory.newLatLng(latLng))
                 println("**********************" + latLng.toString() + "*************************")
                 nMap.animateCamera(CameraUpdateFactory.zoomBy(11f))
@@ -443,6 +461,7 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
         when (requestCode) {
             MY_PERMISSION_CODE -> (
                     if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                        Log.d("Location Permition","8888888888888888888888Granted888888888888888888888888")
                         if (ContextCompat.checkSelfPermission(
                                 this,
                                 android.Manifest.permission.ACCESS_FINE_LOCATION

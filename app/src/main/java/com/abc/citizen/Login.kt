@@ -76,14 +76,13 @@ class Login : AppCompatActivity() {
                             Log.d("success", "signInWithEmail:success")
                             val user = auth.currentUser
                             mProgressBar!!.hide()
-                            Toast.makeText(this, "თქვენ წარმატებით შეხვედით", Toast.LENGTH_SHORT).show()
                             val intent = Intent(baseContext, MainActivity::class.java)
                             startActivity(intent)
 
                         } else {
                             mProgressBar!!.hide()
                             // If sign in fails, display a message to the user.
-                            Log.w("fail", "ავტორიზაცია ჩაიშალა", task.exception)
+                            Log.w("fail", "გთხოვთ შეამოწმოთ ინტერნეტთან კავშირი", task.exception)
                             Toast.makeText(
                                 this, "გთხოვთ გადაამოწმოთ ინფრმაციის სისწორე",
                                 Toast.LENGTH_SHORT

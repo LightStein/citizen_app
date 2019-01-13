@@ -6,16 +6,13 @@ import android.support.design.widget.NavigationView
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.View
-import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_main.*
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.UserInfo
 import com.google.firebase.database.*
 import com.squareup.picasso.Picasso
 import de.hdodenhof.circleimageview.CircleImageView
-import kotlinx.android.synthetic.main.nav_header.*
 
 
 class MainActivity : AppCompatActivity() {
@@ -32,12 +29,48 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         initialise()
 
+        buttonSearch.setOnClickListener {
+            val intent = Intent(applicationContext, Login::class.java)
+            startActivity(intent)
+        }
+
         button_transport.setOnClickListener {
             val intent = Intent(applicationContext, Description::class.java)
             startActivity(intent)
         }
-        buttonSearch.setOnClickListener {
-            val intent = Intent(applicationContext, Login::class.java)
+
+        button_agroculture.setOnClickListener {
+            val intent = Intent(applicationContext, Description::class.java)
+            startActivity(intent)
+        }
+
+        button_animals.setOnClickListener {
+            val intent = Intent(applicationContext, Description::class.java)
+            startActivity(intent)
+        }
+
+        button_disaster.setOnClickListener {
+            val intent = Intent(applicationContext, Description::class.java)
+            startActivity(intent)
+        }
+
+        button_ecology.setOnClickListener {
+            val intent = Intent(applicationContext, Description::class.java)
+            startActivity(intent)
+        }
+
+        button_medicine.setOnClickListener {
+            val intent = Intent(applicationContext, Description::class.java)
+            startActivity(intent)
+        }
+
+        button_infrastructure.setOnClickListener {
+            val intent = Intent(applicationContext, Description::class.java)
+            startActivity(intent)
+        }
+
+        button_justise.setOnClickListener {
+            val intent = Intent(applicationContext, Description::class.java)
             startActivity(intent)
         }
 
