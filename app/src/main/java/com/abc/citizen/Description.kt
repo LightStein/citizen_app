@@ -62,6 +62,7 @@ class Description : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var locationRequest: LocationRequest
     private lateinit var locationCallback: LocationCallback
     lateinit var locationManager: LocationManager
+    
 
     // firebase
     private var mDatabase: FirebaseDatabase? = null
