@@ -1,6 +1,6 @@
 # citizen_app / მოქალაქის აპი
-## Author / ავტორი: 
-Thomas Miller / ანრი გიორგანაშვილი
+## Author
+Thomas Miller
 ## about project / პროექტის თემა:
 <p>it's a feedback system for everyday issues that
 the citizens come across in their life.</p>
